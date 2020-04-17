@@ -1,0 +1,44 @@
+version: "3.7"
+services:
+  gamemaster:
+    build: ./containers/GameMaster
+    image: gamemaster
+    networks:
+      - games_net
+    depends_on:
+      - kafka
+  generator:
+    build: ./containers/generator
+    image: generator
+    ports:
+      - 8080:8080
+    networks:
+      - games_net
+    depends_on:
+      - kafka
+  zookeeper:
+    image: zookeeper:3.6.0
+    ports:
+      - 2181:2181
+    networks:
+      - games_net
+  kafka:
+    image: wurstmeister/kafka:2.12-2.4.1
+    environment:
+      KAFKA_ADVERTISED_LISTENERS: INSIDE://:9092,OUTSIDE://:9094
+      KAFKA_LISTENERS: INSIDE://:9092,OUTSIDE://:9094
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
+      KAFKA_CREATE_TOPICS: "input:4:1, output:4:1"
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false" 
+      KAFKA_CLEANUP_POLICY: "delete"
+    ports:
+      - 9094:9094
+      - 9092:9092
+    expose:
+      - "9092"
+    networks:
+      - games_net
+networks:
+  games_net:

@@ -1,0 +1,62 @@
+#!/bin/bash
+app_name2="ops-playground-image/java/flink-playground-clickcountjob/target/flink-playground-clickcountjob-2-FLINK-*.11.jar"
+app_name="testProject"
+app_jar=$app_name"/target/"$app_name"*.jar"
+
+if [ "$1" == "run" ]; then
+	JOBMANAGER_CONTAINER=$( docker ps --filter name=jobmanager --format={{.ID}})
+	 docker cp $app_jar "$JOBMANAGER_CONTAINER":/job.jar
+	 docker exec -t -i "$JOBMANAGER_CONTAINER" flink run -p $2 /job.jar --bootstrap.servers kafka:9092 --checkpointing --event-time
+elif [ "$1" == "build" ]; then
+	cd containers/application/$app_name
+	mvn clean install
+	cd ..
+	cp $app_jar ../generator/code.jar
+elif [ "$1" == "input" ]; then
+	KAFKA_CONTAINER=$( docker ps --filter name=kafka --format={{.ID}})
+	 docker exec -t -i $KAFKA_CONTAINER kafka-console-consumer.sh   --bootstrap-server localhost:9092 --topic input --property print.key=true --property key.separator="-" --from-beginning
+elif [ "$1" == "output" ]; then
+	KAFKA_CONTAINER=$( docker ps --filter name=kafka --format={{.ID}})
+	 docker exec -t -i $KAFKA_CONTAINER kafka-console-consumer.sh   --bootstrap-server localhost:9092 --topic output --from-beginning
+elif [ "$1" == "part" ]; then
+	KAFKA_CONTAINER=$( docker ps --filter name=kafka --format={{.ID}})
+	 docker exec -it $KAFKA_CONTAINER kafka-topics.sh --describe --zookeeper zookeeper:2181 --topic $1
+elif [ "$1" == "producer" ]; then
+	KAFKA_CONTAINER=$( docker ps --filter name=kafka --format={{.ID}})
+	docker exec -it $KAFKA_CONTAINER kafka-console-producer.sh --broker-list kafka:9092 --topic input
+elif [ "$1" == "swarm up" ]; then
+	docker-compose build
+	docker-compose push
+	docker network create \
+	  --driver=overlay \
+	  --attachable=true \
+	  flink_net 
+	docker volume create flink-checkpoints-directory
+	docker volume create flink-savepoints-directory
+	docker stack deploy --compose-file docker-compose.yaml thesis
+elif [ "$1" == "swarm down" ]; then
+	docker stack rm thesis
+	docker network rm flink_net
+	docker volume rm flink-checkpoints-directory
+	docker volume rm flink-savepoints-directory
+elif [ "$1" == "up" ]; then
+	docker-compose build
+	docker network create \
+	  --driver=overlay \
+	  --attachable=true \
+	  flink_net 
+	docker volume create flink-checkpoints-directory
+	docker volume create flink-savepoints-directory
+	docker-compose up -d
+elif [ "$1" == "down" ]; then
+	docker-compose down
+	docker network rm flink_net
+	docker volume rm flink-checkpoints-directory
+	docker volume rm flink-savepoints-directory
+elif [ "$1" == "swarm scale" ]; then
+	docker service thesis_taskmanager=2
+elif [ "$1" == "registry up" ]; then
+	docker service create --name registry --publish published=5000,target=5000 registry:2
+elif [ "$1" == "registry down" ]; then
+	docker service rm registry
+fi
