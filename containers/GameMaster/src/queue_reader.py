@@ -33,6 +33,7 @@ consumer = KafkaConsumer(bootstrap_servers='kafka:9092',
 
 consumer.subscribe(['input'])
 
+
 chess_queue = list()
 tic_queue = list()
 
