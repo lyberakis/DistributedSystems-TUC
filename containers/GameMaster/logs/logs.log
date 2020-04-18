@@ -1,0 +1,7 @@
+2020-04-18 15:24:20,490 - root - INFO - {'playerID': '1', 'game': 'chess'} received
+2020-04-18 15:24:25,474 - root - INFO - {'playerID': '2', 'game': 'tic'} received
+2020-04-18 15:24:30,469 - root - INFO - {'playerID': '3', 'game': 'chess'} received
+2020-04-18 15:24:35,478 - root - INFO - {'playerID': '4', 'game': 'chess'} received
+2020-04-18 15:24:40,470 - root - INFO - {'playerID': '5', 'game': 'tic'} received
+2020-04-18 15:24:45,476 - root - INFO - {'playerID': '6', 'game': 'tic'} received
+2020-04-18 15:24:50,515 - root - INFO - {'playerID': '7', 'game': 'tic'} received

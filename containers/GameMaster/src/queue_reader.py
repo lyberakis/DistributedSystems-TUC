@@ -1,9 +1,10 @@
 # import threading
-import logging
 import time
 import json
-
 from kafka import KafkaConsumer, KafkaProducer
+from utils import log_settings
+import logging as log
+
 
 def json_deserializer(v):
 	if v is None:
@@ -11,7 +12,7 @@ def json_deserializer(v):
 	try:
 		return json.loads(v.decode('utf-8'))
 	except json.decoder.JSONDecodeError:
-	# log.exception('Unable to decode: %s', v)
+		log.exception('Unable to decode: %s', v)
 		return None
 
 print("HELLO11")
@@ -42,6 +43,7 @@ tic_pending = None
 while True:
 	for message in consumer:
 		record = message.value
+		log.info(f'{record} received')
 		if record['game'] == 'chess':
 			if chess_pending is not None:
 				player1 = chess_pending['playerID']

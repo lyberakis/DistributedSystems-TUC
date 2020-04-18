@@ -5,6 +5,8 @@ services:
     image: gamemaster
     networks:
       - games_net
+    volumes:
+      - ./containers/GameMaster/logs:/etc/logs
     depends_on:
       - kafka
   generator:
@@ -14,6 +16,8 @@ services:
       - 8080:8080
     networks:
       - games_net
+    volumes:
+      - ./containers/generator/logs:/etc/logs
     depends_on:
       - kafka
   zookeeper:
