@@ -1,5 +1,5 @@
 # import threading
-# import logging
+import logging
 import time
 import json
 
@@ -32,35 +32,47 @@ consumer = KafkaConsumer(bootstrap_servers='kafka:9092',
 
 consumer.subscribe(['input'])
 
-chess_queue= list()
+chess_queue = list()
 tic_queue = list()
+
+chess_pending = None
+tic_pending = None
 
 
 while True:
 	for message in consumer:
-		if message is not None:
-			record = message.value
-			if record['game'] == 'chess':
-				chess_queue.append(record)
-				producer.send('output', json.dumps(len(chess_queue)))
-				if len(chess_queue) > 2:
-					player1 = chess_queue.pop(0)['playerID']
-					player2 = chess_queue.pop(1)['playerID']
-					match = dict()
-					match["game"] = "chess"
-					match["players"] = [player1, player2]
-					producer.send('output', json.dumps(match))
-				else:
-					chess_queue.append(record)
-			elif record['game'] == 'tic':
-				tic_queue.append(record)
-				if len(tic_queue) > 2:
-					player1 = tic_queue.pop(0)['playerID']
-					player2 = tic_queue.pop(1)['playerID']
-					match = dict()
-					match["game"] = "tic"
-					match["players"] = [player1, player2]
-					producer.send('output', json.dumps(match))
-				else:
-					tic_queue.append(record)
+		record = message.value
+		if record['game'] == 'chess':
+			if chess_pending is not None:
+				player1 = chess_pending['playerID']
+				player2 = record['playerID']
+				match = dict()
+				match["game"] = "chess"
+				match["players"] = [player1, player2]
+				producer.send('output', json.dumps(match))
+				chess_pending = None
+			else:
+				chess_pending = record
+		elif record['game'] == 'tic':
+			if tic_pending is not None:
+				player1 = tic_pending['playerID']
+				player2 = record['playerID']
+				match = dict()
+				match["game"] = "tic"
+				match["players"] = [player1, player2]
+				producer.send('output', json.dumps(match))
+				tic_pending = None
+			else:
+				tic_pending = record
+		# elif record['game'] == 'tic':
+		# 	tic_queue.append(record)
+		# 	if len(tic_queue) > 1:
+		# 		player1 = tic_queue.pop(0)['playerID']
+		# 		player2 = tic_queue.pop(1)['playerID']
+		# 		match = dict()
+		# 		match["game"] = "tic"
+		# 		match["players"] = [player1, player2]
+		# 		producer.send('output', json.dumps(match))
+		# 	else:
+		# 		tic_queue.append(record)
 		
