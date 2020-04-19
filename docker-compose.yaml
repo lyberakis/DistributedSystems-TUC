@@ -4,6 +4,7 @@ services:
     build: ./containers/GameMaster
     image: gamemaster
     networks:
+      - nosql_net
       - games_net
     volumes:
       - ./containers/GameMaster/logs:/etc/logs
@@ -44,5 +45,22 @@ services:
       - "9092"
     networks:
       - games_net
+  mongodb:
+    container_name: mongodb
+    image: mongo:latest
+    environment:
+      MONGO_INITDB_DATABASE: games
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: rootpassword
+    ports:
+      - 27017:27017
+    volumes:
+      - mongodb_data_container:/data/db
+    networks:
+      - nosql_net
+
+volumes:
+  mongodb_data_container:
 networks:
   games_net:
+  nosql_net:

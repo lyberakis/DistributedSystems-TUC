@@ -13,7 +13,7 @@ handlers:
     level: INFO
     formatter: simple
     filename: /etc/logs/logs.log
-    mode: w
+    mode: a
 loggers:
   mylogger:
     level: INFO
