@@ -10,11 +10,22 @@ services:
       - ./containers/GameMaster/logs:/etc/logs
     depends_on:
       - kafka
+  playmaster:
+    build: ./containers/PlayMaster
+    image: gamemaster
+    networks:
+      - games_net
+    # volumes:
+    #   - ./containers/PlayMaster/logs:/etc/logs
+    depends_on:
+      - gamemaster
+    ports:
+      - 8080:3000
   generator:
     build: ./containers/generator
     image: generator
     ports:
-      - 8080:8080
+      - 80:8080
     networks:
       - games_net
     volumes:
