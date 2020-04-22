@@ -4,13 +4,6 @@ let board = null
 const players = {'first': null, 'second': null}
 let player = 'first'
 
-// function reset() {
-//   board = Array(9).fill(0).map(x => Array(9).fill(''))
-//   players['player1'] = null
-//   players['player2'] = null
-//   player = 'player1'
-// }
-
 
 io.on('connection', (socket) => {
   console.log('Connection0 ')
@@ -34,11 +27,35 @@ io.on('connection', (socket) => {
     }
   })
 
+  socket.on('gameOver', function (message) {
+    var score = {
+      tie: null,
+      winner: null,
+      player1: 'first_id',
+      player2: 'second_id',
+    }
+    score['tie'] = message['isGameOver'] && !message['isWinner'];
+
+    if (players['first'] === socket) {
+      if (message['isWinner']) {
+        score['winner'] = 'first'
+      }else{
+        score['winner'] = 'second'
+      }
+    }else if (players['second'] === socket) {
+      if (message['isWinner']) {
+        score['winner'] = 'second'
+      }else{
+        score['winner'] = 'first'
+      }
+    }
+    console.log(score);
+  })
+
 
 })
 
 
-// reset()
 const port = 1337
 io.listen(port)
 console.log('Listening on port ' + port + '...')

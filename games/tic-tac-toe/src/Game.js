@@ -4,6 +4,8 @@ import openSocket from 'socket.io-client';
 
 // npm i socket.io-client
 
+
+//SQUARE
 function Square(props) {
 
     return (
@@ -16,6 +18,7 @@ function Square(props) {
     );
 }
 
+//BOARD
 class Board extends React.Component {
 	
 	renderSquare(i) {
@@ -49,6 +52,8 @@ class Board extends React.Component {
     }
 }
 
+
+//GET ARGUMENENTS FROM URL
 let getParamValue = function(paramName)
 {
     var url = window.location.search.substring(1); //get rid of "?" in querystring
@@ -62,19 +67,20 @@ let getParamValue = function(paramName)
     }
 }
 
+
+//GAME
 class Game extends React.Component {
 	constructor(props) {
     	super(props);
-    	var url = window.location.search.substring(1);
-    	var qArray = url.split('&');
+    	// var url = window.location.search.substring(1);
+    	// var qArray = url.split('&');
 
-    	let host = qArray[1].split('=');
-
+    	// let host = qArray[1].split('=');
 
     	this.state = {
       		squares: Array(9).fill(null),
     		myTurn: false,
-    		token: qArray[0].split('='),
+    		// token: qArray[0].split('='),
     		socket: openSocket('http://localhost:1337'),
     		type: '-',
  
@@ -97,23 +103,8 @@ class Game extends React.Component {
       			myTurn: true,
       		})
 	      
-    	});
-
-   //  	this.state.socket.on('color', color => {
-   //    		this.setState(...self.state, {color: color})
-   // 		});
-
-   //  	this.state.socket.on('turn', player => {
-   //    		if (player === this.state.color) {
-	  //       	this.setState(...self.state, {message: "You're up. What's your move?", yourTurn: true})
-	  //     	} else {
-	  //     		this.setState(...self.state, {message: player + ' is thinking...', yourTurn: false})
-	  //   	}
-	 	// }
-    
-
-
-  }
+    	});   
+  	}
 
 	handleClick(i){
 	  	if (this.state.myTurn) {
@@ -125,26 +116,37 @@ class Game extends React.Component {
 			}
 
 			squares[i] = this.state.type;
+			
 			this.setState({
 				squares: squares,
 				myTurn: !this.state.myTurn,
 			});
 
-			let message = {
-				id: this.state.id,
-				board: squares,
-
-			}
 			this.state.socket.emit('update', squares)
+
+			let winStatus = calculateWinner(squares);
+			let isGameOver = checkGameOver(squares);
+
+			if(winStatus || isGameOver){
+				let message = {
+					isWinner: winStatus == this.state.type,
+					isGameOver: isGameOver
+				}
+				this.state.socket.emit('gameOver', message)
+			}
 		}
 	}
 
 	render() {
 		const winner = calculateWinner(this.state.squares);
+		const gameOver = checkGameOver(this.state.squares);
+
   		let status;
 
 	  	if (winner) {
 	  		status = 'Winner:' + winner;
+	  	}else if (gameOver){
+	  		status = 'Game ended without winner!';
 	  	}else{
 	  		if (this.state.myTurn) {
 	  			status = 'Your turn!';
@@ -190,6 +192,15 @@ function calculateWinner(squares) {
     }
   }
   return null;
+}
+
+function checkGameOver(squares){
+	for (var i = 0; i < squares.length; i++) {
+		if (squares[i] == null) {
+			return false;
+		}
+	}
+	return true;
 }
 
 export default Game;
