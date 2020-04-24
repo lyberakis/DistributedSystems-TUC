@@ -8,6 +8,13 @@ pending['4567'] = '345346';
 
 // game['roundID'] = [{'token', 'socket'}]
 
+//How to TEST
+// node server.js
+// cd to-game
+//npm start
+// go to http://localhost:3000/?host=http://localhost:1337&token=1234
+// go to http://localhost:3000/?host=http://localhost:1337&token=4567
+
 
 io.on('connection', (socket) => {
   
