@@ -53,46 +53,39 @@ class Board extends React.Component {
 }
 
 
-//GET ARGUMENENTS FROM URL
-let getParamValue = function(paramName)
-{
-    var url = window.location.search.substring(1); //get rid of "?" in querystring
-    var qArray = url.split('&'); //get key-value pairs
-    for (var i = 0; i < qArray.length; i++) 
-    {
-        var pArr = qArray[i].split('='); //split key and value
-        if (pArr[0] === paramName) 
-           console.log(pArr[1]);
-            return pArr[1]; //return value
-    }
-}
-
-
 //GAME
 class Game extends React.Component {
 	constructor(props) {
     	super(props);
-    	// var url = window.location.search.substring(1);
-    	// var qArray = url.split('&');
+    	
+    	let url_string = window.location['href'];
+  		let url = new URL(url_string);
+  		let playmanster = url.searchParams.get("host");
+  		let token = url.searchParams.get("token");
 
-    	// let host = qArray[1].split('=');
+    	let handShake = {
+    		query:'token='+token
+    	}
 
     	this.state = {
       		squares: Array(9).fill(null),
     		myTurn: false,
-    		// token: qArray[0].split('='),
-    		socket: openSocket('http://localhost:1337'),
+    		token: token,
+    		socket: openSocket(playmanster,handShake),
     		type: '-',
  
     	};
 
     	let self = this;
-    	this.state.socket.on('type', type => {
-    		let gtype = type == 'first' ? 'X' : 'O' 
+    	this.state.socket.on('init', message => {
+
+    		let turn = message['turn']
+    		let gtype = turn == 'first' ? 'X' : 'O' 
       		this.setState({
-      			id: type,
+      			id: turn,
       			type: gtype,
       			myTurn: gtype == 'X',
+      			roundID: message['roundID']
       		})
     	});
 
@@ -122,13 +115,19 @@ class Game extends React.Component {
 				myTurn: !this.state.myTurn,
 			});
 
-			this.state.socket.emit('update', squares)
+			let message = {
+				roundID : this.state.roundID,
+				board : squares
+			}
+
+			this.state.socket.emit('update', message)
 
 			let winStatus = calculateWinner(squares);
 			let isGameOver = checkGameOver(squares);
 
 			if(winStatus || isGameOver){
 				let message = {
+					roundID : this.state.roundID,
 					isWinner: winStatus == this.state.type,
 					isGameOver: isGameOver
 				}

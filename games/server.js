@@ -1,48 +1,99 @@
 const io = require('socket.io')()
 
-let board = null
-const players = {'first': null, 'second': null}
-let player = 'first'
+var games = {}   //find quickly the receiver
+var pending = {}
+
+pending['1234'] = '345346';
+pending['4567'] = '345346';
+
+// game['roundID'] = [{'token', 'socket'}]
+
+//How to TEST
+// node server.js
+// cd to-game
+//npm start
+// go to http://localhost:3000/?host=http://localhost:1337&token=1234
+// go to http://localhost:3000/?host=http://localhost:1337&token=4567
 
 
 io.on('connection', (socket) => {
-  console.log('Connection0 ')
-  if (players['first'] == null) {
-    players['first'] = socket
-    socket.emit('type', 'first')
-    console.log('Connection1 ')
-  } else if (players['second'] == null) {
-    players['second'] = socket
-    socket.emit('type', 'second')
-    io.emit('turn', 'x')
-  } else {
+  
+  var token = socket.request._query['token'];
+
+  if (token == undefined) {
     socket.disconnect()
   }
 
-  socket.on('update', function (board) {
-    if (players['first'] === socket) {
-      players['second'].emit('board', board)
-    }else if (players['second'] === socket) {
-      players['first'].emit('board', board)
+  if (token in pending) {
+    let roundID = pending[token];
+    delete pending[token]
+    
+    if (roundID in games) {
+      games[roundID][1] ={
+        'token': token,
+        'socket': socket
+      }
+
+      console.log('second Player connected ')
+
+      let message = {
+        'roundID' : roundID,
+        'turn' : 'second'
+      }
+      socket.emit('init', message)
+
+    }else{
+      games[roundID] = {}
+      games[roundID] = Array(2)
+      games[roundID][0] ={
+        'token': token,
+        'socket': socket
+      }
+      console.log('first Player connected')
+      let message = {
+        'roundID' : roundID,
+        'turn' : 'first'
+      }
+      socket.emit('init', message)
+    }
+  }else{
+    socket.disconnect()
+  }
+
+
+  //transmite the board from one player to another
+  socket.on('update', function (message) {
+    let roundID = message['roundID']  //find the game
+    let board = message['board']
+
+    if (games[roundID][0]['socket'] === socket) {
+      games[roundID][1]['socket'].emit('board', board)
+    }else if (games[roundID][1]['socket'] === socket) {
+      games[roundID][0]['socket'].emit('board', board)
     }
   })
 
+
   socket.on('gameOver', function (message) {
+    
+    let roundID = message['roundID'] 
+
     var score = {
       tie: null,
       winner: null,
       player1: 'first_id',
       player2: 'second_id',
     }
+
     score['tie'] = message['isGameOver'] && !message['isWinner'];
 
-    if (players['first'] === socket) {
+    if (games[roundID][0]['socket'] === socket) {
       if (message['isWinner']) {
         score['winner'] = 'first'
       }else{
         score['winner'] = 'second'
       }
-    }else if (players['second'] === socket) {
+    }else if (games[roundID][1]['socket'] === socket) {
       if (message['isWinner']) {
         score['winner'] = 'second'
       }else{
