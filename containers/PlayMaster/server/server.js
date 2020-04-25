@@ -1,5 +1,5 @@
 const io = require('socket.io')()
-// const mongo = require('mongodb');
+const MongoClient = require('mongodb').MongoClient;
 
 const PMID = "0683424";
 var games = {}   //find quickly the receiver
@@ -17,11 +17,22 @@ var pending = {}
 // go to http://localhost:3000/?host=http://localhost:1337&token=1234
 // go to http://localhost:3000/?host=http://localhost:1337&token=4567
 
-/*
-var MongoClient = require('mongodb').MongoClient;
-var url = "mongodb://mongodb:27017/";
+const url = "mongodb://root:rootpassword@mongodb:27017/";
+
+
 var mongo_conn = null;
 var dbo = null;
+
+
+// MongoClient.connect(url,function(err, db){  
+//   if(err) 
+//     console.log(err);
+//   else
+//   {
+//     console.log('Mongo Conn....');
+
+//   }
+// });
 
 MongoClient.connect(url, function(err, db) {
   if (err) throw err;
@@ -29,11 +40,11 @@ MongoClient.connect(url, function(err, db) {
   console.log("Connected to mongodb!");
   mongo_conn = db;
   dbo.createCollection(PMID, function(err, res) {
-    if (err) throw err;
+  if (err) throw err;
     console.log("Collection created!");
   });
 });
-*/
+
 
 io.on('connection', (socket) => {
   
@@ -55,9 +66,7 @@ io.on('connection', (socket) => {
       }
 
       //Save to db 
-      // dbo.collection(PMID).insertOne(games[roundID], function(err, res) {
-      //   if (err) throw err;
-      // });
+      gameCommit(games[roundID]);
 
       console.log('second Player connected ')
 
@@ -132,11 +141,7 @@ io.on('connection', (socket) => {
 
     delete games[roundID];
 
-    // let myquery = {roundID: roundID };
-
-    // dbo.collection(PMID).deleteOne(myquery, function(err, obj) {
-    //   if (err) throw err;
-    // });
+    gameFree(roundID);
 
     console.log(score);
     //TODO send score to GM
@@ -183,6 +188,30 @@ const port_gm = 8080;
 app.listen(port_gm);
 
 console.log('Listening on port for GM ' + port_gm + '...')
+
+
+
+function gameCommit(game) {
+  let players = game['players']
+  let data = {
+    type: game['type'],
+    players: [players[0]['token'], players[1]['token']]
+  }
+
+  dbo.collection(PMID).insertOne(data, function(err, res) {
+    if (err) throw err;
+  });
+}
+
+function gameFree(roundID) {
+  let myquery = {roundID: roundID };
+
+  dbo.collection(PMID).deleteOne(myquery, function(err, obj) {
+    if (err) throw err;
+  });
+}
+
+
 
 
 
