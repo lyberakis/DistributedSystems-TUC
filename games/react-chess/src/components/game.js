@@ -1,5 +1,4 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
 
 import '../index.css';
 import Board from './board.js';
@@ -49,7 +48,160 @@ export default class Game extends React.Component {
       }
     }else if(this.state.sourceSelection > -1){
       squares[this.state.sourceSelection].style = {...squares[this.state.sourceSelection].style, backgroundColor: ""};
-      if(squares[i] && squares[i].player === this.state.player){
+      if(squares[i] && squares[i].player === this.state.player && 
+        (squares[this.state.sourceSelection].constructor.name==="King" || squares[this.state.sourceSelection].constructor.name==="Rook") &&
+        (squares[i].constructor.name==="King" || squares[i].constructor.name==="Rook")){//castling case
+        const squares = this.state.squares.slice();
+        let isPossible = true;
+
+        if (squares[i].player === 1){//check correct position of pieces
+          if (this.state.sourceSelection===60 && squares[this.state.sourceSelection].constructor.name==="King"){
+            if (i!==63 && i!==56)
+              isPossible=false;
+          }else if (i===60 && squares[i].constructor.name==="King"){
+            if (this.state.sourceSelection!==63 && this.state.sourceSelection!==56)
+              isPossible=false;
+          }else
+            isPossible=false;
+        }else{
+          if (this.state.sourceSelection===4 && squares[this.state.sourceSelection].constructor.name==="King"){
+            if (i!==0 && i!==7)
+              isPossible=false;
+          }else if (i===4 && squares[i].constructor.name==="King"){
+            if (this.state.sourceSelection!==0 && this.state.sourceSelection!==7)
+              isPossible=false;
+          }else
+            isPossible=false;
+        }
+
+        if (isPossible){//check that there are no pieces between them
+          if (squares[i].player === 1){
+            if (i===63 || this.state.sourceSelection===63){
+              if (squares[61] || squares[62])
+                isPossible=false;
+            }else{
+              if (squares[57] || squares[58] || squares[59])
+                isPossible=false;
+            }
+          }else{
+            if (i===7 || this.state.sourceSelection===7){
+              if (squares[5] || squares[6])
+                isPossible=false;
+            }else{
+              if (squares[1] || squares[2] || squares[3])
+                isPossible=false;
+            }
+          }
+
+          if (isPossible){//check if king is or passes from check
+            if (squares[i].player === 1){
+              if (i===63 || this.state.sourceSelection===63){
+                for (let j=0; j<squares.length; j++){
+                  if (squares[j] && squares[j].player!==this.state.player){
+                    const srcToDestPath1 = squares[j].getSrcToDestPath(j, 60);
+                    const srcToDestPath2 = squares[j].getSrcToDestPath(j, 61);
+                    const srcToDestPath3 = squares[j].getSrcToDestPath(j, 62);
+                    if ((squares[j].isMovePossible(j, 60, false) && this.isMoveLegal(srcToDestPath1)) ||
+                        (squares[j].isMovePossible(j, 61, false) && this.isMoveLegal(srcToDestPath2)) ||
+                        (squares[j].isMovePossible(j, 62, false) && this.isMoveLegal(srcToDestPath3))){
+                      isPossible=false;
+                      break;
+                    }
+                  }
+                }
+              }else{
+                for (let j=0; j<squares.length; j++){
+                  if (squares[j] && squares[j].player!==this.state.player){
+                    const srcToDestPath1 = squares[j].getSrcToDestPath(j, 60);
+                    const srcToDestPath2 = squares[j].getSrcToDestPath(j, 59);
+                    const srcToDestPath3 = squares[j].getSrcToDestPath(j, 58);
+                    if ((squares[j].isMovePossible(j, 60, false) && this.isMoveLegal(srcToDestPath1)) ||
+                        (squares[j].isMovePossible(j, 59, false) && this.isMoveLegal(srcToDestPath2)) ||
+                        (squares[j].isMovePossible(j, 58, false) && this.isMoveLegal(srcToDestPath3))){
+                      isPossible=false;
+                      break;
+                    }
+                  }
+                }
+              }
+            }else{
+              if (i===7 || this.state.sourceSelection===7){
+                for (let j=0; j<squares.length; j++){
+                  if (squares[j] && squares[j].player!==this.state.player){
+                    const srcToDestPath1 = squares[j].getSrcToDestPath(j, 4);
+                    const srcToDestPath2 = squares[j].getSrcToDestPath(j, 5);
+                    const srcToDestPath3 = squares[j].getSrcToDestPath(j, 6);
+                    if ((squares[j].isMovePossible(j, 4, false) && this.isMoveLegal(srcToDestPath1)) ||
+                        (squares[j].isMovePossible(j, 5, false) && this.isMoveLegal(srcToDestPath2)) ||
+                        (squares[j].isMovePossible(j, 6, false) && this.isMoveLegal(srcToDestPath3))){
+                      isPossible=false;
+                      break;
+                    }
+                  }
+                }
+              }else{
+                for (let j=0; j<squares.length; j++){
+                  if (squares[j] && squares[j].player!==this.state.player){
+                    const srcToDestPath1 = squares[j].getSrcToDestPath(j, 4);
+                    const srcToDestPath2 = squares[j].getSrcToDestPath(j, 3);
+                    const srcToDestPath3 = squares[j].getSrcToDestPath(j, 2);
+                    if ((squares[j].isMovePossible(j, 4, false) && this.isMoveLegal(srcToDestPath1)) ||
+                        (squares[j].isMovePossible(j, 3, false) && this.isMoveLegal(srcToDestPath2)) ||
+                        (squares[j].isMovePossible(j, 2, false) && this.isMoveLegal(srcToDestPath3))){
+                      isPossible=false;
+                      break;
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        if (isPossible){
+          if (squares[i].player === 1){
+            if (i===63 || this.state.sourceSelection===63){
+              squares[62]=squares[60];
+              squares[61]=squares[63];
+              squares[63]=null;
+            }else{
+              squares[58]=squares[60];
+              squares[59]=squares[56];
+              squares[56]=null;
+            }
+            squares[60]=null;
+          }else{
+            if (i===7 || this.state.sourceSelection===7){
+              squares[6]=squares[4];
+              squares[5]=squares[7];
+              squares[7]=null;
+            }else{
+              squares[2]=squares[4];
+              squares[3]=squares[0];
+              squares[0]=null;
+            }
+            squares[4]=null;
+          }
+
+          let player = this.state.player === 1? 2: 1;
+          let turn = this.state.turn === 'white'? 'black' : 'white';
+          this.setState({
+            squares: squares,
+            player: player,
+            turn: turn,
+            kingStatus: '',
+            changePawn: -1,
+            status: "Castling occured.",
+            sourceSelection: -1,
+          });
+        }else{
+          this.setState({
+            status: "Wrong selection. Castling not allowed.",
+            sourceSelection: -1,
+          });
+        }
+
+      }else if(squares[i] && squares[i].player === this.state.player){
         this.setState({
           status: "Wrong selection. Choose valid source and destination again.",
           sourceSelection: -1,
@@ -98,7 +250,8 @@ export default class Game extends React.Component {
                 for (let l=0; l<squares.length; l++){
                   if (squares[l] && squares[l].player!==this.state.player){
                     for (let m=0; m<srcToDestPath.length; m++){
-                      if (squares[l].isMovePossible(l, srcToDestPath[m], isDestEnemyOccupied) && this.isMoveLegal(squares[l].getSrcToDestPath(l, srcToDestPath[m])) && squares[l].constructor.name!=="King"){
+                      if (squares[l].isMovePossible(l, srcToDestPath[m], isDestEnemyOccupied) && this.isMoveLegal(squares[l].getSrcToDestPath(l, srcToDestPath[m])) && 
+                          squares[l].constructor.name!=="King"){
                         itisCheck=true;
                         break;
                       }
@@ -122,7 +275,7 @@ export default class Game extends React.Component {
                   }else
                     countMoves++;
     
-                  if ((!squares[j+1] || (j+1)==i) && j+1<64){
+                  if ((!squares[j+1] || (j+1)===i) && j+1<64){
                     for (let l=0; l<squares.length; l++){
                       if (squares[l] && squares[l].player===this.state.player && l!==i){
                         const isDestEnemyOccupied = squares[l]? true : false;
@@ -135,7 +288,7 @@ export default class Game extends React.Component {
                     }else
                       countMoves++;
 
-                  if ((!squares[j-7] || (j-7)==i) && j-7>=0){
+                  if ((!squares[j-7] || (j-7)===i) && j-7>=0){
                     for (let l=0; l<squares.length; l++){
                       if (squares[l] && squares[l].player===this.state.player && l!==i){
                         const isDestEnemyOccupied = squares[l]? true : false;
@@ -148,7 +301,7 @@ export default class Game extends React.Component {
                   }else
                     countMoves++;
 
-                  if ((!squares[j+7] || (j+7)==i) && j+7<64){
+                  if ((!squares[j+7] || (j+7)===i) && j+7<64){
                     for (let l=0; l<squares.length; l++){
                       if (squares[l] && squares[l].player===this.state.player && l!==i){
                         const isDestEnemyOccupied = squares[l]? true : false;
@@ -161,7 +314,7 @@ export default class Game extends React.Component {
                   }else
                     countMoves++;
 
-                  if ((!squares[j-8] || (j-8)==i) && j-8>=0){
+                  if ((!squares[j-8] || (j-8)===i) && j-8>=0){
                     for (let l=0; l<squares.length; l++){
                       if (squares[l] && squares[l].player===this.state.player && l!==i){
                         const isDestEnemyOccupied = squares[l]? true : false;
@@ -174,7 +327,7 @@ export default class Game extends React.Component {
                   }else
                     countMoves++;
 
-                  if ((!squares[j+8] || (j+8)==i) && j+8<64){
+                  if ((!squares[j+8] || (j+8)===i) && j+8<64){
                     for (let l=0; l<squares.length; l++){
                       if (squares[l] && squares[l].player===this.state.player && l!==i){
                         const isDestEnemyOccupied = squares[l]? true : false;
@@ -187,7 +340,7 @@ export default class Game extends React.Component {
                   }else
                     countMoves++;
 
-                  if ((!squares[j-9] || (j-9)==i) && j-9>=0){
+                  if ((!squares[j-9] || (j-9)===i) && j-9>=0){
                     for (let l=0; l<squares.length; l++){
                       if (squares[l] && squares[l].player===this.state.player && l!==i){
                         const isDestEnemyOccupied = squares[l]? true : false;
@@ -200,7 +353,7 @@ export default class Game extends React.Component {
                   }else
                     countMoves++;
 
-                  if ((!squares[j+9] || (j+9)==i) && j+9<64){
+                  if ((!squares[j+9] || (j+9)===i) && j+9<64){
                     for (let l=0; l<squares.length; l++){
                       if (squares[l] && squares[l].player===this.state.player && l!==i){
                         const isDestEnemyOccupied = squares[l]? true : false;
@@ -231,16 +384,16 @@ export default class Game extends React.Component {
           let blackPieces=0, whitePieces=0; 
           for (let j=0; j<squares.length; j++){
             if (squares[j]){
-              if (squares[j].player==1)
+              if (squares[j].player===1)
                 whitePieces++;
               else
                 blackPieces++;
             }
           }
 
-          if (blackPieces==1 && whitePieces==1)
+          if (blackPieces===1 && whitePieces===1)
             this.setState({kingStatus: "Stalemate."});
-          else if ((blackPieces==1 && this.state.player==1) || (whitePieces==1 && this.state.player==2)){
+          else if ((blackPieces===1 && this.state.player===1) || (whitePieces===1 && this.state.player===2)){
             for (let j=0; j<squares.length; j++){
               if (squares[j] && squares[j].constructor.name==="King" && squares[j].player!==this.state.player){//find the king
                 let countMoves = 0;
@@ -349,7 +502,7 @@ export default class Game extends React.Component {
                 }else
                   countMoves++;
                 
-               if (countMoves==8)
+               if (countMoves===8)
                   this.setState({kingStatus: "Stalemate."});
 
                 break;
@@ -358,16 +511,16 @@ export default class Game extends React.Component {
           }
 
           //code for pawn change
-          if (this.state.player==1){
+          if (this.state.player===1){
             for (let j=0; j<8; j++){
-              if (squares[j] && squares[j].player==1 && squares[j].constructor.name==="Pawn"){
+              if (squares[j] && squares[j].player===1 && squares[j].constructor.name==="Pawn"){
                 this.setState({changePawn: j});
                 break;
               }
             }
           }else{
             for (let j=56; j<64; j++){
-              if (squares[j] && squares[j].player==2 && squares[j].constructor.name==="Pawn"){
+              if (squares[j] && squares[j].player===2 && squares[j].constructor.name==="Pawn"){
                 this.setState({changePawn: j});
                 break;
               }
