@@ -5,6 +5,10 @@ import '../index.css';
 import Board from './board.js';
 import FallenSoldierBlock from './fallen-soldier-block.js';
 import initialiseChessBoard from '../helpers/board-initialiser.js';
+import Bishop from '../pieces/bishop.js';
+import Knight from '../pieces/knight.js';
+import Queen from '../pieces/queen.js';
+import Rook from '../pieces/rook.js';
 
 export default class Game extends React.Component {
   constructor(props){
@@ -17,8 +21,13 @@ export default class Game extends React.Component {
       sourceSelection: -1,
       status: '',
       kingStatus: '',
-      turn: 'white'
+      turn: 'white',
+      changePawn: -1
     }
+    this.setBishop = this.setBishop.bind(this);
+    this.setQueen = this.setQueen.bind(this);
+    this.setKnight = this.setKnight.bind(this);
+    this.setRook = this.setRook.bind(this);
   }
  
   handleClick(i){
@@ -75,152 +84,296 @@ export default class Game extends React.Component {
             player: player,
             status: '',
             turn: turn,
-            kingStatus: ''
+            kingStatus: '',
+            changePawn: -1
           });
 
-          //code for check, stalemate and checkmate
+          //code for check and checkmate
           for (let j=0; j<squares.length; j++){
             if (squares[j] && squares[j].constructor.name==="King" && squares[j].player!==this.state.player){//find the king
-              for (let k=0; k<squares.length; k++){
-                if (squares[k] && squares[k].player===this.state.player){
-                  const path = squares[k].getSrcToDestPath(k, j);
-                  if (squares[k].isMovePossible(k, j, isDestEnemyOccupied) && this.isMoveLegal(path)){//find enemy that threatens the king
-                    let itisCheck=false;
-                    path[path.length]=k;
+              if (squares[i].isMovePossible(i, j, isDestEnemyOccupied) && this.isMoveLegal(srcToDestPath)){//find if enemy threatens the king
+                let itisCheck=false;
+                srcToDestPath[srcToDestPath.length]=i;
 
-                    for (let l=0; l<squares.length; l++){
-                      if (squares[l] && squares[l].player!==this.state.player){
-                        for (let m=0; m<path.length; m++){
-                         if (squares[l].isMovePossible(l, path[m], isDestEnemyOccupied) && this.isMoveLegal(squares[l].getSrcToDestPath(l, path[m])) && squares[l].constructor.name!=="King"){
-                           itisCheck=true;
-                           break;
-                          }
-                        }
-                      }
-                    }
-
-                    if (itisCheck===false){//find king's possible moves and check if they avoid checkmate
-                      let countMoves = 0;
-
-                      if ((!squares[j-1] || j-1===k) && j-1>0){
-                        for (let l=0; l<squares.length; l++){
-                          if (squares[l] && squares[l].player===this.state.player){
-                            if (squares[l].isMovePossible(l, j-1, isDestEnemyOccupied) && this.isMoveLegal(squares[l].getSrcToDestPath(l, j-1))){
-                              countMoves++;
-                              break;
-                            }
-                          }
-                        }
-                      }else{
-                        countMoves++;
-                      }
-
-                      if ((!squares[j+1] || j+1===k) && j+1<64){
-                        for (let l=0; l<squares.length; l++){
-                          if (squares[l] && squares[l].player===this.state.player){
-                            if (squares[l].isMovePossible(l, j+1, isDestEnemyOccupied) && this.isMoveLegal(squares[l].getSrcToDestPath(l, j+1))){
-                              countMoves++;
-                              break;
-                            }
-                          }
-                        }
-                      }else{
-                        countMoves++;
-                      }
-
-                      if ((!squares[j-7] || j-7===k) && j-7>0){
-                        for (let l=0; l<squares.length; l++){
-                          if (squares[l] && squares[l].player===this.state.player){
-                            if (squares[l].isMovePossible(l, j-7, isDestEnemyOccupied) && this.isMoveLegal(squares[l].getSrcToDestPath(l, j-7))){
-                              countMoves++;
-                              break;
-                            }
-                          }
-                        }
-                      }else{
-                        countMoves++;
-                      }
-
-                      if ((!squares[j+7] || j+7===k) && j+7<64){
-                        for (let l=0; l<squares.length; l++){
-                          if (squares[l] && squares[l].player===this.state.player){
-                            if (squares[l].isMovePossible(l, j+7, isDestEnemyOccupied) && this.isMoveLegal(squares[l].getSrcToDestPath(l, j+7))){
-                              countMoves++;
-                              break;
-                            }
-                          }
-                        }
-                      }else{
-                        countMoves++;
-                      }
-
-                      if ((!squares[j-8] || j-8===k) && j-8>0){
-                        for (let l=0; l<squares.length; l++){
-                          if (squares[l] && squares[l].player===this.state.player){
-                            if (squares[l].isMovePossible(l, j-8, isDestEnemyOccupied) && this.isMoveLegal(squares[l].getSrcToDestPath(l, j-8))){
-                              countMoves++;
-                              break;
-                            }
-                          }
-                        }
-                      }else{
-                        countMoves++;
-                      }
-
-                      if ((!squares[j+8] || j+8===k) && j+8<64){
-                        for (let l=0; l<squares.length; l++){
-                          if (squares[l] && squares[l].player===this.state.player){
-                            if (squares[l].isMovePossible(l, j+8, isDestEnemyOccupied) && this.isMoveLegal(squares[l].getSrcToDestPath(l, j+8))){
-                              countMoves++;
-                              break;
-                            }
-                          }
-                        }
-                      }else{
-                        countMoves++;
-                      }
-
-                      if ((!squares[j-9] || j-9===k) && j-9>0){
-                        for (let l=0; l<squares.length; l++){
-                          if (squares[l] && squares[l].player===this.state.player){
-                            if (squares[l].isMovePossible(l, j-9, isDestEnemyOccupied) && this.isMoveLegal(squares[l].getSrcToDestPath(l, j-9))){
-                              countMoves++;
-                              break;
-                            }
-                          }
-                        }
-                      }else{
-                        countMoves++;
-                      }
-
-                      if ((!squares[j+9] || j+9===k) && j+9<64){
-                        for (let l=0; l<squares.length; l++){
-                          if (squares[l] && squares[l].player===this.state.player){
-                            if (squares[l].isMovePossible(l, j+9, isDestEnemyOccupied) && this.isMoveLegal(squares[l].getSrcToDestPath(l, j+9))){
-                              countMoves++;
-                              break;
-                            }
-                          }
-                        }
-                      }else{
-                        countMoves++;
-                      }
-
-                      if (countMoves<8)
+                for (let l=0; l<squares.length; l++){
+                  if (squares[l] && squares[l].player!==this.state.player){
+                    for (let m=0; m<srcToDestPath.length; m++){
+                      if (squares[l].isMovePossible(l, srcToDestPath[m], isDestEnemyOccupied) && this.isMoveLegal(squares[l].getSrcToDestPath(l, srcToDestPath[m])) && squares[l].constructor.name!=="King"){
                         itisCheck=true;
+                        break;
+                      }
                     }
-                                      
-                    if (itisCheck===true)
-                      this.setState({kingStatus: "Check."});
-                    else
-                      this.setState({kingStatus: "Checkmate."});
-
-                    break;
                   }
                 }
+
+                if (itisCheck===false){//find king's possible moves and check if they avoid checkmate
+                  let countMoves = 0;
+
+                  if ((!squares[j-1] || j-1===i) && j-1>=0){
+                    for (let l=0; l<squares.length; l++){
+                      if (squares[l] && squares[l].player===this.state.player && l!==i){
+                        const isDestEnemyOccupied = squares[l]? true : false; 
+                        if (squares[l].isMovePossible(l, j-1, isDestEnemyOccupied) && this.isMoveLegal(squares[l].getSrcToDestPath(l, j-1))){
+                          countMoves++;
+                          break;
+                        }
+                      }
+                    }
+                  }else
+                    countMoves++;
+    
+                  if ((!squares[j+1] || (j+1)==i) && j+1<64){
+                    for (let l=0; l<squares.length; l++){
+                      if (squares[l] && squares[l].player===this.state.player && l!==i){
+                        const isDestEnemyOccupied = squares[l]? true : false;
+                          if (squares[l].isMovePossible(l, j+1, isDestEnemyOccupied) && this.isMoveLegal(squares[l].getSrcToDestPath(l, j+1))){
+                            countMoves++;
+                            break;
+                          }
+                        }
+                      }
+                    }else
+                      countMoves++;
+
+                  if ((!squares[j-7] || (j-7)==i) && j-7>=0){
+                    for (let l=0; l<squares.length; l++){
+                      if (squares[l] && squares[l].player===this.state.player && l!==i){
+                        const isDestEnemyOccupied = squares[l]? true : false;
+                        if (squares[l].isMovePossible(l, j-7, isDestEnemyOccupied) && this.isMoveLegal(squares[l].getSrcToDestPath(l, j-7))){
+                          countMoves++;
+                          break;
+                        }
+                      }
+                    }
+                  }else
+                    countMoves++;
+
+                  if ((!squares[j+7] || (j+7)==i) && j+7<64){
+                    for (let l=0; l<squares.length; l++){
+                      if (squares[l] && squares[l].player===this.state.player && l!==i){
+                        const isDestEnemyOccupied = squares[l]? true : false;
+                        if (squares[l].isMovePossible(l, j+7, isDestEnemyOccupied) && this.isMoveLegal(squares[l].getSrcToDestPath(l, j+7))){
+                          countMoves++;
+                          break;
+                        }
+                      }
+                    }
+                  }else
+                    countMoves++;
+
+                  if ((!squares[j-8] || (j-8)==i) && j-8>=0){
+                    for (let l=0; l<squares.length; l++){
+                      if (squares[l] && squares[l].player===this.state.player && l!==i){
+                        const isDestEnemyOccupied = squares[l]? true : false;
+                        if (squares[l].isMovePossible(l, j-8, isDestEnemyOccupied) && this.isMoveLegal(squares[l].getSrcToDestPath(l, j-8))){
+                          countMoves++;
+                          break;
+                        }
+                      }
+                    }
+                  }else
+                    countMoves++;
+
+                  if ((!squares[j+8] || (j+8)==i) && j+8<64){
+                    for (let l=0; l<squares.length; l++){
+                      if (squares[l] && squares[l].player===this.state.player && l!==i){
+                        const isDestEnemyOccupied = squares[l]? true : false;
+                        if (squares[l].isMovePossible(l, j+8, isDestEnemyOccupied) && this.isMoveLegal(squares[l].getSrcToDestPath(l, j+8))){
+                          countMoves++;
+                          break;
+                        }
+                      }
+                    }
+                  }else
+                    countMoves++;
+
+                  if ((!squares[j-9] || (j-9)==i) && j-9>=0){
+                    for (let l=0; l<squares.length; l++){
+                      if (squares[l] && squares[l].player===this.state.player && l!==i){
+                        const isDestEnemyOccupied = squares[l]? true : false;
+                        if (squares[l].isMovePossible(l, j-9, isDestEnemyOccupied) && this.isMoveLegal(squares[l].getSrcToDestPath(l, j-9))){
+                          countMoves++;
+                          break;
+                        }
+                      }
+                    }
+                  }else
+                    countMoves++;
+
+                  if ((!squares[j+9] || (j+9)==i) && j+9<64){
+                    for (let l=0; l<squares.length; l++){
+                      if (squares[l] && squares[l].player===this.state.player && l!==i){
+                        const isDestEnemyOccupied = squares[l]? true : false;
+                        if (squares[l].isMovePossible(l, j+9, isDestEnemyOccupied) && this.isMoveLegal(squares[l].getSrcToDestPath(l, j+9))){
+                          countMoves++;
+                          break;
+                        }
+                      }
+                    }
+                  }else
+                    countMoves++;
+
+                  if (countMoves<8)
+                    itisCheck=true;
+                }
+                                      
+                if (itisCheck===true)
+                  this.setState({kingStatus: "Check."});
+                else
+                  this.setState({kingStatus: "Checkmate."});
+
+                break;
               }
             }
-          }          
+          } 
+
+          //code for stalemate
+          let blackPieces=0, whitePieces=0; 
+          for (let j=0; j<squares.length; j++){
+            if (squares[j]){
+              if (squares[j].player==1)
+                whitePieces++;
+              else
+                blackPieces++;
+            }
+          }
+
+          if (blackPieces==1 && whitePieces==1)
+            this.setState({kingStatus: "Stalemate."});
+          else if ((blackPieces==1 && this.state.player==1) || (whitePieces==1 && this.state.player==2)){
+            for (let j=0; j<squares.length; j++){
+              if (squares[j] && squares[j].constructor.name==="King" && squares[j].player!==this.state.player){//find the king
+                let countMoves = 0;
+
+                if (!squares[j-1] && j-1>0){
+                  for (let l=0; l<squares.length; l++){
+                    if (squares[l] && squares[l].player===this.state.player){
+                      const isDestEnemyOccupied = squares[l]? true : false;
+                      if (squares[l].isMovePossible(l, j-1, isDestEnemyOccupied) && this.isMoveLegal(squares[l].getSrcToDestPath(l, j-1))){
+                        countMoves++;
+                        break;
+                      }
+                    }
+                  }
+                }else
+                  countMoves++;
+
+                if (!squares[j+1] && j+1<64){
+                  for (let l=0; l<squares.length; l++){
+                    if (squares[l] && squares[l].player===this.state.player){
+                      const isDestEnemyOccupied = squares[l]? true : false;
+                      if (squares[l].isMovePossible(l, j+1, isDestEnemyOccupied) && this.isMoveLegal(squares[l].getSrcToDestPath(l, j+1))){
+                        countMoves++;
+                        break;
+                      }
+                    }
+                  }
+                }else
+                  countMoves++;
+
+                if (!squares[j-7] && j-7>0){
+                  for (let l=0; l<squares.length; l++){
+                    if (squares[l] && squares[l].player===this.state.player){
+                      const isDestEnemyOccupied = squares[l]? true : false;
+                      if (squares[l].isMovePossible(l, j-7, isDestEnemyOccupied) && this.isMoveLegal(squares[l].getSrcToDestPath(l, j-7))){
+                        countMoves++;
+                         break;
+                      }
+                    }
+                  }
+                }else
+                  countMoves++;
+
+                if (!squares[j+7] && j+7<64){
+                  for (let l=0; l<squares.length; l++){
+                    if (squares[l] && squares[l].player===this.state.player){
+                      const isDestEnemyOccupied = squares[l]? true : false;
+                      if (squares[l].isMovePossible(l, j+7, isDestEnemyOccupied) && this.isMoveLegal(squares[l].getSrcToDestPath(l, j+7))){
+                        countMoves++;
+                        break;
+                      }
+                    }
+                  }
+                }else
+                  countMoves++;
+
+               if (!squares[j-8] && j-8>0){
+                  for (let l=0; l<squares.length; l++){
+                    if (squares[l] && squares[l].player===this.state.player){
+                      const isDestEnemyOccupied = squares[l]? true : false;
+                      if (squares[l].isMovePossible(l, j-8, isDestEnemyOccupied) && this.isMoveLegal(squares[l].getSrcToDestPath(l, j-8))){
+                        countMoves++;
+                        break;
+                      }
+                    }
+                  }
+                }else
+                  countMoves++;
+                
+                if (!squares[j+8] && j+8<64){
+                  for (let l=0; l<squares.length; l++){
+                    if (squares[l] && squares[l].player===this.state.player){
+                      const isDestEnemyOccupied = squares[l]? true : false;
+                      if (squares[l].isMovePossible(l, j+8, isDestEnemyOccupied) && this.isMoveLegal(squares[l].getSrcToDestPath(l, j+8))){
+                        countMoves++;
+                        break;
+                      }
+                    }
+                  }
+                }else
+                  countMoves++;
+
+                if (!squares[j-9] && j-9>0){
+                  for (let l=0; l<squares.length; l++){
+                    if (squares[l] && squares[l].player===this.state.player){
+                      const isDestEnemyOccupied = squares[l]? true : false;
+                      if (squares[l].isMovePossible(l, j-9, isDestEnemyOccupied) && this.isMoveLegal(squares[l].getSrcToDestPath(l, j-9))){
+                        countMoves++;
+                        break;
+                      }
+                    }
+                  }
+                }else
+                  countMoves++;
+
+                if (!squares[j+9] && j+9<64){
+                  for (let l=0; l<squares.length; l++){
+                    if (squares[l] && squares[l].player===this.state.player){
+                      const isDestEnemyOccupied = squares[l]? true : false;
+                      if (squares[l].isMovePossible(l, j+9, isDestEnemyOccupied) && this.isMoveLegal(squares[l].getSrcToDestPath(l, j+9))){
+                        countMoves++;
+                        break;
+                      }
+                    }
+                  }
+                }else
+                  countMoves++;
+                
+               if (countMoves==8)
+                  this.setState({kingStatus: "Stalemate."});
+
+                break;
+              }
+            }
+          }
+
+          //code for pawn change
+          if (this.state.player==1){
+            for (let j=0; j<8; j++){
+              if (squares[j] && squares[j].player==1 && squares[j].constructor.name==="Pawn"){
+                this.setState({changePawn: j});
+                break;
+              }
+            }
+          }else{
+            for (let j=56; j<64; j++){
+              if (squares[j] && squares[j].player==2 && squares[j].constructor.name==="Pawn"){
+                this.setState({changePawn: j});
+                break;
+              }
+            }
+          }
+          
         }else{
           this.setState({
             status: "Wrong selection. Choose valid source and destination again.",
@@ -245,16 +398,80 @@ export default class Game extends React.Component {
     return isLegal;
   }
 
-  findAllMoves(piece, isDestEnemyOccupied){
-    var moves = [];
-    let counter = 0;
-    for (let i=0; i<64; i++){
-      
+  setBishop(){
+    let newSquares = this.state.squares;
+    if (this.state.player===1){
+      newSquares[this.state.changePawn] = new Bishop(2);
+      this.setState({
+        squares: newSquares,
+        changePawn: -1
+      });
+    }else{
+      newSquares[this.state.changePawn] = new Bishop(1);
+      this.setState({
+        squares: newSquares,
+        changePawn: -1
+      });
     }
   }
 
+  setQueen(){
+    let newSquares = this.state.squares;
+    if (this.state.player===1){
+      newSquares[this.state.changePawn] = new Queen(2);
+      this.setState({
+        squares: newSquares,
+        changePawn: -1
+      });
+    }else{
+      newSquares[this.state.changePawn] = new Queen(1);
+      this.setState({
+        squares: newSquares,
+        changePawn: -1
+      });
+    }
+  }
+
+  setKnight(){
+    let newSquares = this.state.squares;
+    if (this.state.player===1){
+      newSquares[this.state.changePawn] = new Knight(2);
+      this.setState({
+        squares: newSquares,
+        changePawn: -1
+      });
+    }else{
+      newSquares[this.state.changePawn] = new Knight(1);
+      this.setState({
+        squares: newSquares,
+        changePawn: -1
+      });
+    }
+  }
+
+  setRook(){
+    let newSquares = this.state.squares;
+    if (this.state.player===1){
+      newSquares[this.state.changePawn] = new Rook(2);
+      this.setState({
+        squares: newSquares,
+        changePawn: -1
+      });
+    }else{
+      newSquares[this.state.changePawn] = new Rook(1);
+      this.setState({
+        squares: newSquares,
+        changePawn: -1
+      });
+    }
+
+  }
+
   render() {
-    
+    let showButtons=false;
+    if (this.state.changePawn!==-1)
+      showButtons=true;
+        
     return (
       <div>
         <div className="game">
@@ -280,12 +497,17 @@ export default class Game extends React.Component {
               />
             }
             </div>
-            
+            {showButtons
+              ? <div> <button onClick = {this.setBishop}> Bishop </button> 
+                      <button onClick = {this.setQueen}> Queen </button> 
+                      <button onClick = {this.setKnight}> Knight </button> 
+                      <button onClick = {this.setRook}> Rook </button> 
+                </div>
+              : <div> </div>
+            }
           </div>
         </div>
       </div>
-
-     
-      );
+    );
   }
 }
