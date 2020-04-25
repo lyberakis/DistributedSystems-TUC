@@ -19,8 +19,12 @@ services:
     #   - ./containers/PlayMaster/logs:/etc/logs
     depends_on:
       - gamemaster
+      - mongodb
     ports:
-      - 8080:3000
+      - 1337:1337
+      - 8080:8080
+    networks:
+      - nosql_net
   generator:
     build: ./containers/generator
     image: generator
