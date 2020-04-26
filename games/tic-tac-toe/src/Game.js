@@ -4,7 +4,6 @@ import openSocket from 'socket.io-client';
 
 // npm i socket.io-client
 
-
 //SQUARE
 function Square(props) {
 
@@ -57,46 +56,118 @@ class Board extends React.Component {
 class Game extends React.Component {
 	constructor(props) {
     	super(props);
+
+    	let args = getArgumenets();
+    	let data = connect(args['host']+':'+args['playmanster'],args['token'])
     	
-    	let url_string = window.location['href'];
-  		let url = new URL(url_string);
-  		let playmanster = url.searchParams.get("host");
-  		let token = url.searchParams.get("token");
-
-    	let handShake = {
-    		query:'token='+token
-    	}
-
     	this.state = {
+    		host: args['host'],
+    		gamemaster: args['gamemaster'],
       		squares: Array(9).fill(null),
     		myTurn: false,
-    		token: token,
-    		socket: openSocket(playmanster,handShake),
+    		token: args['token'],
+    		socket: data['socket'],
+    		status: data['status'],
     		type: '-',
+    		turn: null,
  
     	};
 
-    	let self = this;
-    	this.state.socket.on('init', message => {
+    	this.setListeners(); 
+  	}
 
-    		let turn = message['turn']
-    		let gtype = turn == 'first' ? 'X' : 'O' 
-      		this.setState({
-      			id: turn,
-      			type: gtype,
-      			myTurn: gtype == 'X',
-      			roundID: message['roundID']
+  	setListeners(){
+  		this.state.socket.on('wait', message => {
+    		this.setState({
+      			status: 1
       		})
     	});
 
-    	this.state.socket.on('board', board => {
+    	this.state.socket.on('init', message => {
+    		let turn = message['turn'];
+    		if (this.state.id == null){
+	    		let gtype = turn == 'first' ? 'X' : 'O' 
+ 
+	      		this.setState({
+	      			id: turn,
+	      			status: 2,
+	      			type: gtype,
+	      			myTurn: gtype == 'X',
+	      			roundID: message['roundID']
+	      		})
+	      	}else{
+	      		let gtype = this.state.id == 'first' ? 'X' : 'O' 
+	      		this.setState({
+	      			id: turn,
+	      			status: 2,
+	      			type: gtype,
+	      			roundID: message['roundID']
+	      		})
+	      	}
 
+      		console.log("Game Init!")
+    	});
+
+    	//
+    	this.state.socket.on('board', board => {
       		this.setState({
       			squares: board,
       			myTurn: true,
       		})
-	      
-    	});   
+    	}); 
+
+    	this.state.socket.on('disconnect', board => {
+    		console.log("disconnect");
+    		this.state.socket.disconnect()
+
+    		if (this.state.status > 0) {}
+
+    		this.setState({
+				status: 4,
+			})
+    		
+    		var xhr = new XMLHttpRequest()
+			xhr.onload = function (e) {
+				// update the state of the component with the result here
+				if (xhr.readyState == 4) {
+        			if (xhr.status == 200) {
+						let respone = JSON.parse(xhr.responseText);
+						console.log(xhr.responseText)
+						this.reconnect(respone['playmaster']);
+						
+					}
+				}
+		    }.bind(this);
+
+		    let game = 'tic-tac-toe';
+		    let master = this.state.host + ':' + this.state.gamemaster
+		    let url = 'http://'+master+'?'+'token='+this.state.token+'&game='+ game;
+
+			xhr.open('GET', url);
+			//xhr.setRequestHeader("Content-Type", 'application/x-www-form-urlencoded');
+			xhr.send();
+    		if (this.state.status >0) {}
+      		// this.setState({
+      		// 	squares: board,
+      		// 	myTurn: true,
+      		// })
+    	}); 
+
+  	}
+
+  	reconnect(port){
+  		console.log('reconnecting...')
+  		let playmaster = this.state.host + ':' + port;
+		let token = this.state.token;
+		var data = connect(playmaster,token)
+
+		this.setState({
+			socket: data['socket'],
+			status: data['status'],
+		});
+
+		console.log(data['socket']);
+		this.setListeners();
   	}
 
 	handleClick(i){
@@ -122,39 +193,51 @@ class Game extends React.Component {
 
 			this.state.socket.emit('update', message)
 
-			let winStatus = calculateWinner(squares);
-			let isGameOver = checkGameOver(squares);
+			let winner = calculateWinner(squares);
+			let endgame = isGameEnded(squares);
 
-			if(winStatus || isGameOver){
+			//check if the game is ended
+			if(endgame || winner){
 				let message = {
 					roundID : this.state.roundID,
-					isWinner: winStatus == this.state.type,
-					isGameOver: isGameOver
+					winner: winner,
 				}
-				this.state.socket.emit('gameOver', message)
+				this.state.socket.emit('endgame', message)
 			}
 		}
 	}
 
 	render() {
 		const winner = calculateWinner(this.state.squares);
-		const gameOver = checkGameOver(this.state.squares);
+		const gameOver = isGameEnded(this.state.squares);
 
   		let status;
+  		let conn_status;
 
-	  	if (winner) {
-	  		status = 'Winner:' + winner;
-	  	}else if (gameOver){
-	  		status = 'Game ended without winner!';
-	  	}else{
-	  		if (this.state.myTurn) {
-	  			status = 'Your turn!';
-	  		}else{
-	  			status = 'Waiting opponent...';
-	  		}
+  		if (this.state.status == 0) {
+	  		conn_status = 'Connection establised!';
+	  	}else if (this.state.status == 1) { 
+	  		conn_status = 'Connected! Wait opponent to connect.';
+	  	}else if (this.state.status == 2) {
+	  		conn_status = 'Ready!';
+	  		if (winner) {
+		  		status = 'Winner:' + winner;
+		  	}else if (gameOver){
+		  		status = 'Game ended without winner!';
+		  	}else{
+		  		if (this.state.myTurn) {
+		  			status = 'Your turn!';
+		  		}else{
+		  			status = 'opponent\'s turn';
+		  		}
+		  	}
+	  	}else if (this.state.status == 4){
+	  		conn_status = 'Re-connecting!';
+	  	}
+	  	else{
+	  		conn_status = 'Connection error!';
 	  	}
 
-	  	let test1 = this.state.token;
 
     	return (
 			<div className="game">
@@ -165,8 +248,9 @@ class Game extends React.Component {
 					/>
 				</div>
 				<div className="game-info">
-				  <div>{status}</div>
-				  <div>Your symbol: {this.state.type}</div>
+					<div>{conn_status}</div>
+				 	<div>{status}</div>
+				 	<div>Your symbol: {this.state.type}</div>
 				</div>
 			</div>
     );
@@ -193,7 +277,7 @@ function calculateWinner(squares) {
   return null;
 }
 
-function checkGameOver(squares){
+function isGameEnded(squares){
 	for (var i = 0; i < squares.length; i++) {
 		if (squares[i] == null) {
 			return false;
@@ -201,5 +285,48 @@ function checkGameOver(squares){
 	}
 	return true;
 }
+
+function getArgumenets() {
+	let url_string = window.location['href'];
+  	let url = new URL(url_string);
+
+  	let host = url.hostname;
+  	let playmanster = url.searchParams.get("pm");
+  	let gamemaster = url.searchParams.get("gm");
+  	let token = url.searchParams.get("token");
+
+  	let args = {
+  		'host': host,
+  		'token': token,
+  		'playmanster' : playmanster,
+  		'gamemaster' : gamemaster 
+  	};
+
+  	return args;
+}
+
+function connect(server, token){
+	
+	if (token || server) {
+
+	}
+
+    let handShake = {
+    	query:'token='+token
+    }
+
+    let socket = openSocket(server, handShake)
+
+    let response = {
+    	'socket': socket,
+    	'status': socket['connected'] ? 0 : -1,
+    }
+
+    console.log(response)
+
+    return response;
+
+}
+
 
 export default Game;

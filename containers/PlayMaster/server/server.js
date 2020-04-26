@@ -1,6 +1,8 @@
 const io = require('socket.io')()
 const MongoClient = require('mongodb').MongoClient;
 
+var myArgs = process.argv.slice(2);
+
 const PMID = "0683424";
 var games = {}   //find quickly the receiver
 var pending = {}
@@ -17,7 +19,7 @@ var pending = {}
 // go to http://localhost:3000/?host=http://localhost:1337&token=1234
 // go to http://localhost:3000/?host=http://localhost:1337&token=4567
 
-const url = "mongodb://root:rootpassword@mongodb:27017/";
+// const url = "mongodb://root:rootpassword@mongodb:27017/";
 
 
 var mongo_conn = null;
@@ -34,123 +36,120 @@ var dbo = null;
 //   }
 // });
 
-MongoClient.connect(url, function(err, db) {
-  if (err) throw err;
-  dbo = db.db("play_repo");
-  console.log("Connected to mongodb!");
-  mongo_conn = db;
-  dbo.createCollection(PMID, function(err, res) {
-  if (err) throw err;
-    console.log("Collection created!");
-  });
-});
+// MongoClient.connect(url, function(err, db) {
+//   if (err) throw err;
+//   dbo = db.db("play_repo");
+//   console.log("Connected to mongodb!");
+//   mongo_conn = db;
+//   dbo.createCollection(PMID, function(err, res) {
+//   if (err) throw err;
+//     console.log("Collection created!");
+//   });
+// });
 
 
 io.on('connection', (socket) => {
   
-  var token = socket.request._query['token'];
+	var token = socket.request._query['token'];
 
-  if (token == undefined) {
-    socket.disconnect()
-  }
+	//check the client sent token
+	if (token == undefined) {
+		socket.disconnect()
+	}
 
-  if (token in pending) {
-    let roundID = pending[token]['roundID'];
-    let game = pending[token]['game'];
-    delete pending[token]
-    
-    if (roundID in games) {
-      games[roundID]['players'][1] ={
-        'token': token,
-        'socket': socket
-      }
+	//check if token is valid
+	if (token in pending) {
+		let roundID = pending[token]['roundID'];
+		let tournament_id = pending[token]['tournament_id'];
+		let game = pending[token]['game'];
+		delete pending[token]
 
-      //Save to db 
-      gameCommit(games[roundID]);
+		//check if the game is initilized
+		if (roundID in games) {
+			//Configure second player's connection
 
-      console.log('second Player connected ')
+			games[roundID]['players'][1] ={
+				'token': token,
+				'socket': socket
+			}
 
-      let message = {
-        'roundID' : roundID,
-        'turn' : 'second'
-      }
-      socket.emit('init', message)
+			//Save to db 
+			gameCommit(games[roundID]);
 
-    }else{
-      games[roundID] = {}
-      games[roundID]['type'] = game;
-      games[roundID]['players'] = Array(2)
-      games[roundID]['players'][0] ={
-        'token': token,
-        'socket': socket
-      }
+			console.log('second Player with token '+token)
 
-      console.log('first Player connected')
-      let message = {
-        'roundID' : roundID,
-        'turn' : 'first'
-      }
-      socket.emit('init', message)
-    }
-  }else{
-    socket.disconnect()
-  }
+			let message1 = {
+				'roundID' : roundID,
+				'turn' : 'first'
+			}
 
+			let message2 = {
+				'roundID' : roundID,
+				'turn' : 'second'
+			}
 
-  //transmite the board from one player to another
-  socket.on('update', function (message) {
-    let roundID = message['roundID']  //find the game
-    let board = message['board']
+			//inform players that they are ready to play
+			games[roundID]['players'][0]['socket'].emit('init', message1)
+			socket.emit('init', message2)
 
-    if (games[roundID]['players'][0]['socket'] === socket) {
-      games[roundID]['players'][1]['socket'].emit('board', board)
-    }else if (games[roundID]['players'][1]['socket'] === socket) {
-      games[roundID]['players'][0]['socket'].emit('board', board)
-    }
-  })
+		}else{
+			//Configure first player's connection
+			games[roundID] = {}
+			games[roundID]['type'] = game;
+			games[roundID]['tournament_id'] = game;
+			games[roundID]['players'] = Array(2)
+			games[roundID]['players'][0] ={
+				'token': token,
+				'socket': socket
+			}
+
+		  console.log('first Player connected with token '+token)
+		  socket.emit('wait', null)
+		}
+	}else{
+		socket.disconnect()
+	}
 
 
-  socket.on('gameOver', function (message) {
-    
-    let roundID = message['roundID'] 
-    let players = games[roundID]['players'];
+	//read the board
+	socket.on('update', function (message) {
+		let roundID = message['roundID']  //find the game
+		console.log(roundID)
+		let board = message['board']
+		let players = games[roundID]['players']
 
-    var score = {
-      game : games[roundID]['type'],
-      tie: null,
-      winner: null,
-      player1: players[0]['token'],
-      player2: players[1]['token'],
-    }
+		//Transmit the board to the other player
+		if (players[0]['socket'] === socket) {
+			players[1]['socket'].emit('board', board)
+		}else if (players[1]['socket'] === socket) {
+			players[0]['socket'].emit('board', board)
+		}
+	})
 
-    score['tie'] = message['isGameOver'] && !message['isWinner'];
 
-    if (players[0]['socket'] === socket) {
-      if (message['isWinner']) {
-        score['winner'] = players[0]['token']
-      }else{
-        score['winner'] = players[1]['token']
-      }
-    }else if (games[roundID]['players'][1]['socket'] === socket) {
-      if (message['isWinner']) {
-        score['winner'] = players[1]['token']
-      }else{
-        score['winner'] = players[0]['token']
-      }
-    }
+	socket.on('endgame', function (message) {
+		let roundID = message['roundID'] 
+		let players = games[roundID]['players'];
 
-    delete games[roundID];
+		var score = {
+		  game : games[roundID]['type'],
+		  winner: message['winner'],
+		  player1: players[0]['token'],
+		  player2: players[1]['token'],
+		}
 
-    gameFree(roundID);
+		delete games[roundID];
 
-    console.log(score);
-    //TODO send score to GM
-  })
+		gameFree(roundID);
+
+		console.log(score);
+		//TODO send score to GM
+	})
 
 })
 
 
-const port_client = 1337
+const port_client = myArgs[1]
 io.listen(port_client)
 console.log('Listening on port for clients ' + port_client + '...')
 
@@ -170,12 +169,14 @@ app.post('/', function(request, response){
   let id = uniqid();
   let game = request.body['game'];
   let players = request.body['players'];
+  let tournament_id = request.body['tournament_id'];
   let p1 = players[0];
   let p2 = players[1];
 
   pending[p1] = {
-    'roundID' : id,
-    'game' : game
+	'roundID' : id,
+	'game' : game,
+	'tournament_id': tournament_id
   };
   pending[p2] = pending[p1];
   
@@ -184,7 +185,7 @@ app.post('/', function(request, response){
 
 });
 
-const port_gm = 8080;
+const port_gm = myArgs[0];
 app.listen(port_gm);
 
 console.log('Listening on port for GM ' + port_gm + '...')
@@ -192,23 +193,23 @@ console.log('Listening on port for GM ' + port_gm + '...')
 
 
 function gameCommit(game) {
-  let players = game['players']
-  let data = {
-    type: game['type'],
-    players: [players[0]['token'], players[1]['token']]
-  }
+  // let players = game['players']
+  // let data = {
+  //   type: game['type'],
+  //   players: [players[0]['token'], players[1]['token']]
+  //}
 
-  dbo.collection(PMID).insertOne(data, function(err, res) {
-    if (err) throw err;
-  });
+  // dbo.collection(PMID).insertOne(data, function(err, res) {
+  //   if (err) throw err;
+  // });
 }
 
 function gameFree(roundID) {
-  let myquery = {roundID: roundID };
+  // let myquery = {roundID: roundID };
 
-  dbo.collection(PMID).deleteOne(myquery, function(err, obj) {
-    if (err) throw err;
-  });
+  // dbo.collection(PMID).deleteOne(myquery, function(err, obj) {
+  //   if (err) throw err;
+  // });
 }
 
 
