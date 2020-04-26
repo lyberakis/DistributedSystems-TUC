@@ -3,6 +3,8 @@ services:
   gamemaster:
     build: ./containers/GameMaster
     image: gamemaster
+    ports:
+      - 9000:9000
     networks:
       - nosql_net
       - games_net
@@ -12,7 +14,7 @@ services:
       - kafka
   playmaster:
     build: ./containers/PlayMaster
-    image: gamemaster
+    image: playmaster
     networks:
       - games_net
     # volumes:
