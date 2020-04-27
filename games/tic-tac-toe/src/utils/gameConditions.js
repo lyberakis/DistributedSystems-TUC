@@ -12,10 +12,18 @@ export function calculateWinner(squares) {
   for (let i = 0; i < lines.length; i++) {
     const [a, b, c] = lines[i];
     if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
+      highlight(lines[i]);
       return squares[a];
     }
   }
   return null;
+}
+
+function highlight(list) {
+  let i;
+  for (i in list){
+    document.getElementsByClassName('square')[list[i]].style.textShadow = 'red 0px 0px 10px';
+  }
 }
 
 
