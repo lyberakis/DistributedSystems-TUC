@@ -7,46 +7,12 @@ const PMID = "0683424";
 var games = {}   //find quickly the receiver
 var pending = {}
 
-// pending['1234'] = '345346';
-// pending['4567'] = '345346';
-
-// game['roundID'] = [{'token', 'socket'}]
-
 //How to TEST
-// node server.js
+// node server.js 8080 1337
 // cd to-game
-//npm start
-// go to http://localhost:3000/?host=http://localhost:1337&token=1234
-// go to http://localhost:3000/?host=http://localhost:1337&token=4567
-
-// const url = "mongodb://root:rootpassword@mongodb:27017/";
-
-
-var mongo_conn = null;
-var dbo = null;
-
-
-// MongoClient.connect(url,function(err, db){  
-//   if(err) 
-//     console.log(err);
-//   else
-//   {
-//     console.log('Mongo Conn....');
-
-//   }
-// });
-
-// MongoClient.connect(url, function(err, db) {
-//   if (err) throw err;
-//   dbo = db.db("play_repo");
-//   console.log("Connected to mongodb!");
-//   mongo_conn = db;
-//   dbo.createCollection(PMID, function(err, res) {
-//   if (err) throw err;
-//     console.log("Collection created!");
-//   });
-// });
-
+// npm start
+// go to http://localhost:3000/?pm=1337&gm=9000&token=1
+// go to http://localhost:3000/?pm=1337&gm=9000&token=2
 
 io.on('connection', (socket) => {
   
@@ -189,10 +155,11 @@ function invert(a){
 function createScore(roundID, winner){
 
 	var score = {
-	  game : games[roundID]['type'],
-	  winner: null,
-	  player1: games[roundID]['players'][0]['token'],
-	  player2: games[roundID]['players'][1]['token'],
+		tournament_id: games[roundID]['tournament_id'],
+		game : games[roundID]['type'],
+		winner: null,
+		player1: games[roundID]['players'][0]['token'],
+		player2: games[roundID]['players'][1]['token'],
 	}
 
 	if (winner == null) {
@@ -250,6 +217,28 @@ app.listen(port_gm);
 console.log('Listening on port for GM ' + port_gm + '...')
 
 
+// const url = "mongodb://root:rootpassword@mongodb:27017/";
+// var mongo_conn = null;
+// var dbo = null;
+// MongoClient.connect(url,function(err, db){  
+//   if(err) 
+//     console.log(err);
+//   else
+//   {
+//     console.log('Mongo Conn....');
+
+//   }
+// });
+// MongoClient.connect(url, function(err, db) {
+//   if (err) throw err;
+//   dbo = db.db("play_repo");
+//   console.log("Connected to mongodb!");
+//   mongo_conn = db;
+//   dbo.createCollection(PMID, function(err, res) {
+//   if (err) throw err;
+//     console.log("Collection created!");
+//   });
+// });
 
 function gameCommit(game) {
   // let players = game['players']
