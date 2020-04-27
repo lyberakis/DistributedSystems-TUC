@@ -1,6 +1,7 @@
 import React from 'react';
 import './index.css';
-import * as utils from './utils.js'; 
+import * as condition from './utils/gameConditions.js'; 
+import * as conn from './utils/multiplayer.js'; 
 
 //SQUARE
 function Square(props) {
@@ -56,8 +57,8 @@ class Game extends React.Component {
     	super(props);
 
     	//Establish Connection
-    	let args = utils.getArgumenets();
-    	let data = utils.connect(args['host']+':'+args['playmanster'],args['token'])
+    	let args = conn.getArgumenets();
+    	let data = conn.connect(args['host']+':'+args['playmanster'],args['token'])
     	
     	this.state = {
     		host: args['host'],
@@ -72,123 +73,16 @@ class Game extends React.Component {
     	};
 
     	//set event handlers for server messages
-    	this.setListeners();
-    	this.setupBeforeUnloadListener();
+    	conn.setListeners(this);
   	}
 
-  	setListeners(){
-  		//You connected first, wait for the opponent to connect
-  		this.state.socket.on('wait', message => {
-    		this.setState({
-      			status: 1,
-      			roundID: message['roundID'],
-      		})
-    	});
-
-  		//Both players are connected. The game can begin
-    	this.state.socket.on('init', message => {
-
-
-    		//Check if the game is new or it is continued from server fault.
-    		if (this.state.type == null){
-    			let turn = message['turn'];
-	    		let type = turn ? 'X' : 'O' 
- 
-	      		this.setState({
-	      			status: 2,
-	      			type: type,
-	      			myTurn: turn,
-	      			roundID: message['roundID']
-	      		})
-	      	}else{ 
-	      		this.setState({
-	      			status: 2,
-	      			roundID: message['roundID']   //get the new round ID
-	      		})
-	      	}
-    	});
-
-    	//Receive the updated board
-    	this.state.socket.on('board', board => {
-      		this.setState({
-      			squares: board,
-      			myTurn: true,
-      		})
-    	}); 
-
-    	//Handler for server disconnection
-    	this.state.socket.on('disconnect', board => {
-
-    		//if you never connected or the game is completed, return
-    		if (this.state.status < 0 || this.state.status > 2) {
-    			return;
-    		}
-
-    		this.state.socket.disconnect()
-
-    		this.setState({
-				status: 4,
-			})
-    		
-    		//Create a request to GameMaster
-    		var xhr = new XMLHttpRequest()
-
-			xhr.onload = function (e) {
-
-				if (xhr.readyState == 4) {
-
-					//Check if the GameMaster accepted the request
-        			if (xhr.status == 200) {  
-						let respone = JSON.parse(xhr.responseText);
-						this.reconnect(respone['playmaster']);
-					}else if(xhr.status == 403){
-						this.setState({
-							status: -3,
-						})
-					}
-				}
-		    }.bind(this);
-
-		    let game = 'tic-tac-toe';
-		    let master = this.state.host + ':' + this.state.gamemaster
-		    let url = 'http://'+master+'?'+'token='+this.state.token+'&game='+ game;
-
-			xhr.open('GET', url);
-			xhr.send();
-    	}); 
-
-    	//The game is over from the server's side
-    	this.state.socket.on('endgame', message => {
-      		this.setState({
-      			status: 4,
-      		})
-      		this.state.socket.disconnect();
-    	}); 
-
-  	}
-
-  	//Establish a new connections
-  	reconnect(port){
-  		console.log('reconnecting...')
-  		let playmaster = this.state.host + ':' + port;
-		let token = this.state.token;
-		var data = utils.connect(playmaster,token)
-
-		this.setState({
-			socket: data['socket'],
-			status: data['status'],
-		});
-
-		console.log(data['socket']);
-		this.setListeners();
-  	}
-
+  	
 	handleClick(i){
 	  	if (this.state.myTurn) {
 			const squares = this.state.squares.slice();   //create a copy of the array
 
 			//if the game is over or the sqare is already filled, return
-			if (utils.calculateWinner(squares) || squares[i]){
+			if (condition.calculateWinner(squares) || squares[i]){
 				return;
 			}
 
@@ -206,8 +100,8 @@ class Game extends React.Component {
 
 			this.state.socket.emit('update', message)
 
-			let winner = utils.calculateWinner(squares);
-			let endgame = utils.isGameEnded(squares);
+			let winner = condition.calculateWinner(squares);
+			let endgame = condition.isGameEnded(squares);
 			let winnerInfo = null;
 
 			if (winner == null) {
@@ -228,26 +122,14 @@ class Game extends React.Component {
 			}
 		}
 	}
-
-	doSomethingBeforeUnload() {
-		let message = {
-			roundID : this.state.roundID
-		}
-       this.state.socket.emit('surrender', message);
-       return;
-    }
-
 	
 	// Setup the `beforeunload` event listener
 	setupBeforeUnloadListener() {
 	    window.addEventListener("beforeunload", (ev) => {
 	        ev.preventDefault();
 	        return 'Are you sure you want to leave?';
-	        // this.doSomethingBeforeUnload();
 	    });
 	}
-
-	
 
 	componentDidMount() {
         // Activate the event listener
@@ -255,8 +137,8 @@ class Game extends React.Component {
     }
 
 	render() {
-		const winner = utils.calculateWinner(this.state.squares);
-		const gameOver = utils.isGameEnded(this.state.squares);
+		const winner = condition.calculateWinner(this.state.squares);
+		const gameOver = condition.isGameEnded(this.state.squares);
 
   		let status;
   		let conn_status;
