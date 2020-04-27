@@ -80,12 +80,18 @@ io.on('connection', (socket) => {
 
 			let message1 = {
 				'roundID' : roundID,
-				'turn' : 'first'
+				'turn' : true
 			}
 
 			let message2 = {
 				'roundID' : roundID,
-				'turn' : 'second'
+				'turn' : false
+			}
+
+			if (games[roundID]['players'][0]['socket']['connected'] == false) {
+				createScore(roundID, 1)
+				socket.emit('endgame', null);
+				return;
 			}
 
 			//inform players that they are ready to play
@@ -104,7 +110,7 @@ io.on('connection', (socket) => {
 			}
 
 		  console.log('first Player connected with token '+token)
-		  socket.emit('wait', null)
+		  socket.emit('wait', {'roundID' : roundID})
 		}
 	}else{
 		socket.disconnect()
@@ -114,39 +120,92 @@ io.on('connection', (socket) => {
 	//read the board
 	socket.on('update', function (message) {
 		let roundID = message['roundID']  //find the game
-		console.log(roundID)
 		let board = message['board']
 		let players = games[roundID]['players']
 
 		//Transmit the board to the other player
-		if (players[0]['socket'] === socket) {
-			players[1]['socket'].emit('board', board)
-		}else if (players[1]['socket'] === socket) {
-			players[0]['socket'].emit('board', board)
-		}
+		let sender = players[0]['socket'] === socket ? 0 : 1;
+		players[invert(sender)]['socket'].emit('board', board)
+
 	})
 
 
 	socket.on('endgame', function (message) {
 		let roundID = message['roundID'] 
 		let players = games[roundID]['players'];
+		let sender = players[0]['socket'] === socket ? 0 : 1;
 
-		var score = {
-		  game : games[roundID]['type'],
-		  winner: message['winner'],
-		  player1: players[0]['token'],
-		  player2: players[1]['token'],
+		switch(message['winner']){
+			case 0:
+				createScore(roundID, null)
+				break;
+			case 1:
+				createScore(roundID, sender)
+				break;
+			case -1:
+				createScore(roundID, invert(sender))
+				break;
+
 		}
 
 		delete games[roundID];
 
-		gameFree(roundID);
+	})
 
-		console.log(score);
-		//TODO send score to GM
+
+	socket.on('disconnect', function (message) {
+
+		//Check every game
+		for (round in games) {
+			var players = games[round]['players'];
+
+			//check every player in the round
+			for (var i = 0; i < 2; i++) {
+				if (players[i] != undefined) {
+
+					//find who disconnected
+					if (players[i]['socket'] === socket) {
+
+						//announce as winner the other player
+						if (players[invert(i)] != undefined) {
+							players[invert(i)]['socket'].emit('endgame', null);
+							createScore(round, invert(i));
+							break;
+						}
+					}
+				}
+			}
+		}
 	})
 
 })
+
+
+//Easy way to go from 0 to 1 and otherwise
+function invert(a){
+	return (a + 1) % 2
+}
+
+function createScore(roundID, winner){
+
+	var score = {
+	  game : games[roundID]['type'],
+	  winner: null,
+	  player1: games[roundID]['players'][0]['token'],
+	  player2: games[roundID]['players'][1]['token'],
+	}
+
+	if (winner == null) {
+		score['winner'] = null;
+	}else{
+		score['winner'] = games[roundID]['players'][winner]['token'];
+	}
+
+	delete games[roundID];
+
+	console.log(score)
+
+}
 
 
 const port_client = myArgs[1]

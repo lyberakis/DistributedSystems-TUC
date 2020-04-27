@@ -1,8 +1,6 @@
 import React from 'react';
 import './index.css';
-import openSocket from 'socket.io-client';
-
-// npm i socket.io-client
+import * as utils from './utils.js'; 
 
 //SQUARE
 function Square(props) {
@@ -57,8 +55,9 @@ class Game extends React.Component {
 	constructor(props) {
     	super(props);
 
-    	let args = getArgumenets();
-    	let data = connect(args['host']+':'+args['playmanster'],args['token'])
+    	//Establish Connection
+    	let args = utils.getArgumenets();
+    	let data = utils.connect(args['host']+':'+args['playmanster'],args['token'])
     	
     	this.state = {
     		host: args['host'],
@@ -68,47 +67,48 @@ class Game extends React.Component {
     		token: args['token'],
     		socket: data['socket'],
     		status: data['status'],
-    		type: '-',
-    		turn: null,
- 
+    		type: null,
+    		roundID: null,
     	};
 
-    	this.setListeners(); 
+    	//set event handlers for server messages
+    	this.setListeners();
+    	this.setupBeforeUnloadListener();
   	}
 
   	setListeners(){
+  		//You connected first, wait for the opponent to connect
   		this.state.socket.on('wait', message => {
     		this.setState({
-      			status: 1
+      			status: 1,
+      			roundID: message['roundID'],
       		})
     	});
 
+  		//Both players are connected. The game can begin
     	this.state.socket.on('init', message => {
-    		let turn = message['turn'];
-    		if (this.state.id == null){
-	    		let gtype = turn == 'first' ? 'X' : 'O' 
+
+
+    		//Check if the game is new or it is continued from server fault.
+    		if (this.state.type == null){
+    			let turn = message['turn'];
+	    		let type = turn ? 'X' : 'O' 
  
 	      		this.setState({
-	      			id: turn,
 	      			status: 2,
-	      			type: gtype,
-	      			myTurn: gtype == 'X',
+	      			type: type,
+	      			myTurn: turn,
 	      			roundID: message['roundID']
 	      		})
-	      	}else{
-	      		let gtype = this.state.id == 'first' ? 'X' : 'O' 
+	      	}else{ 
 	      		this.setState({
-	      			id: turn,
 	      			status: 2,
-	      			type: gtype,
-	      			roundID: message['roundID']
+	      			roundID: message['roundID']   //get the new round ID
 	      		})
 	      	}
-
-      		console.log("Game Init!")
     	});
 
-    	//
+    	//Receive the updated board
     	this.state.socket.on('board', board => {
       		this.setState({
       			squares: board,
@@ -116,25 +116,35 @@ class Game extends React.Component {
       		})
     	}); 
 
+    	//Handler for server disconnection
     	this.state.socket.on('disconnect', board => {
-    		console.log("disconnect");
-    		this.state.socket.disconnect()
 
-    		if (this.state.status > 0) {}
+    		//if you never connected or the game is completed, return
+    		if (this.state.status < 0 || this.state.status > 2) {
+    			return;
+    		}
+
+    		this.state.socket.disconnect()
 
     		this.setState({
 				status: 4,
 			})
     		
+    		//Create a request to GameMaster
     		var xhr = new XMLHttpRequest()
+
 			xhr.onload = function (e) {
-				// update the state of the component with the result here
+
 				if (xhr.readyState == 4) {
-        			if (xhr.status == 200) {
+
+					//Check if the GameMaster accepted the request
+        			if (xhr.status == 200) {  
 						let respone = JSON.parse(xhr.responseText);
-						console.log(xhr.responseText)
 						this.reconnect(respone['playmaster']);
-						
+					}else if(xhr.status == 403){
+						this.setState({
+							status: -3,
+						})
 					}
 				}
 		    }.bind(this);
@@ -144,22 +154,25 @@ class Game extends React.Component {
 		    let url = 'http://'+master+'?'+'token='+this.state.token+'&game='+ game;
 
 			xhr.open('GET', url);
-			//xhr.setRequestHeader("Content-Type", 'application/x-www-form-urlencoded');
 			xhr.send();
-    		if (this.state.status >0) {}
-      		// this.setState({
-      		// 	squares: board,
-      		// 	myTurn: true,
-      		// })
+    	}); 
+
+    	//The game is over from the server's side
+    	this.state.socket.on('endgame', message => {
+      		this.setState({
+      			status: 4,
+      		})
+      		this.state.socket.disconnect();
     	}); 
 
   	}
 
+  	//Establish a new connections
   	reconnect(port){
   		console.log('reconnecting...')
   		let playmaster = this.state.host + ':' + port;
 		let token = this.state.token;
-		var data = connect(playmaster,token)
+		var data = utils.connect(playmaster,token)
 
 		this.setState({
 			socket: data['socket'],
@@ -175,7 +188,7 @@ class Game extends React.Component {
 			const squares = this.state.squares.slice();   //create a copy of the array
 
 			//if the game is over or the sqare is already filled, return
-			if (calculateWinner(squares) || squares[i]){
+			if (utils.calculateWinner(squares) || squares[i]){
 				return;
 			}
 
@@ -193,23 +206,57 @@ class Game extends React.Component {
 
 			this.state.socket.emit('update', message)
 
-			let winner = calculateWinner(squares);
-			let endgame = isGameEnded(squares);
+			let winner = utils.calculateWinner(squares);
+			let endgame = utils.isGameEnded(squares);
+			let winnerInfo = null;
+
+			if (winner == null) {
+				winnerInfo = 0;
+			}else if (winner == this.state.type) {
+				winnerInfo = 1;
+			}else{
+				winnerInfo = -1;
+			}
 
 			//check if the game is ended
 			if(endgame || winner){
 				let message = {
 					roundID : this.state.roundID,
-					winner: winner,
+					winner: winnerInfo,
 				}
 				this.state.socket.emit('endgame', message)
 			}
 		}
 	}
 
+	doSomethingBeforeUnload() {
+		let message = {
+			roundID : this.state.roundID
+		}
+       this.state.socket.emit('surrender', message);
+       return;
+    }
+
+	
+	// Setup the `beforeunload` event listener
+	setupBeforeUnloadListener() {
+	    window.addEventListener("beforeunload", (ev) => {
+	        ev.preventDefault();
+	        return 'Are you sure you want to leave?';
+	        // this.doSomethingBeforeUnload();
+	    });
+	}
+
+	
+
+	componentDidMount() {
+        // Activate the event listener
+        this.setupBeforeUnloadListener();
+    }
+
 	render() {
-		const winner = calculateWinner(this.state.squares);
-		const gameOver = isGameEnded(this.state.squares);
+		const winner = utils.calculateWinner(this.state.squares);
+		const gameOver = utils.isGameEnded(this.state.squares);
 
   		let status;
   		let conn_status;
@@ -251,82 +298,11 @@ class Game extends React.Component {
 					<div>{conn_status}</div>
 				 	<div>{status}</div>
 				 	<div>Your symbol: {this.state.type}</div>
+				 	<div>STATUS: {this.state.status}</div>
 				</div>
 			</div>
     );
   }
 }
-
-function calculateWinner(squares) {
-  const lines = [
-    [0, 1, 2],
-    [3, 4, 5],
-    [6, 7, 8],
-    [0, 3, 6],
-    [1, 4, 7],
-    [2, 5, 8],
-    [0, 4, 8],
-    [2, 4, 6],
-  ];
-  for (let i = 0; i < lines.length; i++) {
-    const [a, b, c] = lines[i];
-    if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-      return squares[a];
-    }
-  }
-  return null;
-}
-
-function isGameEnded(squares){
-	for (var i = 0; i < squares.length; i++) {
-		if (squares[i] == null) {
-			return false;
-		}
-	}
-	return true;
-}
-
-function getArgumenets() {
-	let url_string = window.location['href'];
-  	let url = new URL(url_string);
-
-  	let host = url.hostname;
-  	let playmanster = url.searchParams.get("pm");
-  	let gamemaster = url.searchParams.get("gm");
-  	let token = url.searchParams.get("token");
-
-  	let args = {
-  		'host': host,
-  		'token': token,
-  		'playmanster' : playmanster,
-  		'gamemaster' : gamemaster 
-  	};
-
-  	return args;
-}
-
-function connect(server, token){
-	
-	if (token || server) {
-
-	}
-
-    let handShake = {
-    	query:'token='+token
-    }
-
-    let socket = openSocket(server, handShake)
-
-    let response = {
-    	'socket': socket,
-    	'status': socket['connected'] ? 0 : -1,
-    }
-
-    console.log(response)
-
-    return response;
-
-}
-
 
 export default Game;
