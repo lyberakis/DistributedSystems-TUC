@@ -2,6 +2,7 @@ import React from 'react';
 import './index.css';
 import * as condition from './utils/gameConditions.js'; 
 import * as conn from './utils/multiplayer.js'; 
+import * as ui from './utils/messages.js'
 
 //SQUARE
 function Square(props) {
@@ -114,6 +115,10 @@ class Game extends React.Component {
 
 			//check if the game is ended
 			if(endgame || winner){
+				this.setState({
+					status: 3,
+				});
+
 				let message = {
 					roundID : this.state.roundID,
 					winner: winnerInfo,
@@ -137,36 +142,15 @@ class Game extends React.Component {
     }
 
 	render() {
-		const winner = condition.calculateWinner(this.state.squares);
-		const gameOver = condition.isGameEnded(this.state.squares);
+		let winner = condition.calculateWinner(this.state.squares);
+		let gameOver = condition.isGameEnded(this.state.squares);
 
-  		let status;
-  		let conn_status;
+  		let status = ui.showGameStatus(this.state.status);
+  		let endState = ui.showWinner(winner, this.state.type, gameOver, this.state.status);
+  		let turn = ui.showTurn(this.state.status, this.state.myTurn);
+  		let symbol = ui.showSymbol(this.state.type)
 
-  		if (this.state.status == 0) {
-	  		conn_status = 'Connection establised!';
-	  	}else if (this.state.status == 1) { 
-	  		conn_status = 'Connected! Wait opponent to connect.';
-	  	}else if (this.state.status == 2) {
-	  		conn_status = 'Ready!';
-	  		if (winner) {
-		  		status = 'Winner:' + winner;
-		  	}else if (gameOver){
-		  		status = 'Game ended without winner!';
-		  	}else{
-		  		if (this.state.myTurn) {
-		  			status = 'Your turn!';
-		  		}else{
-		  			status = 'opponent\'s turn';
-		  		}
-		  	}
-	  	}else if (this.state.status == 4){
-	  		conn_status = 'Re-connecting!';
-	  	}
-	  	else{
-	  		conn_status = 'Connection error!';
-	  	}
-
+  		console.log(this.state.status)
 
     	return (
 			<div className="game bg">
@@ -180,11 +164,16 @@ class Game extends React.Component {
 						onClick={(i) => this.handleClick(i)}
 					/>
 				</div>
-				<div className="game-info">
-					<div>{conn_status}</div>
-				 	<div>{status}</div>
-				 	<div>Your symbol: {this.state.type}</div>
-				 	<div>STATUS: {this.state.status}</div>
+
+				<div className="game-info row">
+					<div className="status column left">
+						<div>{symbol}</div>
+						<div>{status}</div>
+					 	<div>{turn}</div>
+					 </div>
+					 <div className="column right">
+					 	<div className="endstate">{endState}</div>
+					 </div>
 				</div>
 			</div>
     );

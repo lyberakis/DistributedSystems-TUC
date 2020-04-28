@@ -65,6 +65,11 @@ ol, ul {
   outline: none;
 }
 
+.square:hover {
+  box-shadow: 0px 0px 10px #00ff14;
+}
+
+
 .kbd-navigation .square:focus {
   background: #ddd;
 }
@@ -97,3 +102,31 @@ ol, ul {
   margin: auto;
   margin-top: 50px;
 }
+
+.endstate{
+  font-weight: 900;
+  font-size: 40px;
+  text-shadow: white 0px 0px 7px;
+}
+
+.column {
+  float: left;
+  padding: 10px;
+}
+
+.left {
+  width: 70%;
+}
+
+.right {
+  width: 25%;
+}
+
+.row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+
+

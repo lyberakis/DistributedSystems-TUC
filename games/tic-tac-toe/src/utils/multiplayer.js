@@ -1,4 +1,5 @@
 import openSocket from 'socket.io-client';
+import * as condition from './gameConditions.js';
 
 // ==========================================
 // ==> Variables in state <==
@@ -42,8 +43,7 @@ import openSocket from 'socket.io-client';
 
 // ==========================================
 
-// ===> FOR OTHER GAME CHANGE THE LINE 109
-
+// ===> FOR OTHER GAME CHANGE THE LINE 109 and 133-140
 // ==========================================
 
 
@@ -76,8 +76,6 @@ export function connect(server, token){
     }
 
     let socket = openSocket(server, handShake)
-
-    console.log(socket)
 
     let response = {
     	'socket': socket,
@@ -129,6 +127,16 @@ export function setListeners(obj){
         squares: board,
         myTurn: true,
       })
+
+      let winner = condition.calculateWinner(board);
+      let gameOver = condition.isGameEnded(board);
+
+      //Set Game as completed
+      if (winner || gameOver) {
+        obj.setState({
+          status: 3,
+        })
+      }
   }); 
 
 
