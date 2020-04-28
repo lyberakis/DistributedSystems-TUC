@@ -1,9 +1,8 @@
 import React from 'react';
 import './index.css';
-import openSocket from 'socket.io-client';
-
-// npm i socket.io-client
-
+import * as condition from './utils/gameConditions.js'; 
+import * as conn from './utils/multiplayer.js'; 
+import * as ui from './utils/messages.js'
 
 //SQUARE
 function Square(props) {
@@ -57,54 +56,34 @@ class Board extends React.Component {
 class Game extends React.Component {
 	constructor(props) {
     	super(props);
+
+    	//Establish Connection
+    	let args = conn.getArgumenets();
+    	let data = conn.connect(args['host']+':'+args['playmanster'],args['token'])
     	
-    	let url_string = window.location['href'];
-  		let url = new URL(url_string);
-  		let playmanster = url.searchParams.get("host");
-  		let token = url.searchParams.get("token");
-
-    	let handShake = {
-    		query:'token='+token
-    	}
-
     	this.state = {
+    		host: args['host'],
+    		gamemaster: args['gamemaster'],
       		squares: Array(9).fill(null),
     		myTurn: false,
-    		token: token,
-    		socket: openSocket(playmanster,handShake),
-    		type: '-',
- 
+    		token: args['token'],
+    		socket: data['socket'],
+    		status: data['status'],
+    		type: null,
+    		roundID: null,
     	};
 
-    	let self = this;
-    	this.state.socket.on('init', message => {
-
-    		let turn = message['turn']
-    		let gtype = turn == 'first' ? 'X' : 'O' 
-      		this.setState({
-      			id: turn,
-      			type: gtype,
-      			myTurn: gtype == 'X',
-      			roundID: message['roundID']
-      		})
-    	});
-
-    	this.state.socket.on('board', board => {
-
-      		this.setState({
-      			squares: board,
-      			myTurn: true,
-      		})
-	      
-    	});   
+    	//set event handlers for server messages
+    	conn.setListeners(this);
   	}
 
+  	
 	handleClick(i){
 	  	if (this.state.myTurn) {
 			const squares = this.state.squares.slice();   //create a copy of the array
 
 			//if the game is over or the sqare is already filled, return
-			if (calculateWinner(squares) || squares[i]){
+			if (condition.calculateWinner(squares) || squares[i]){
 				return;
 			}
 
@@ -122,84 +101,83 @@ class Game extends React.Component {
 
 			this.state.socket.emit('update', message)
 
-			let winStatus = calculateWinner(squares);
-			let isGameOver = checkGameOver(squares);
+			let winner = condition.calculateWinner(squares);
+			let endgame = condition.isGameEnded(squares);
+			let winnerInfo = null;
 
-			if(winStatus || isGameOver){
+			if (winner == null) {
+				winnerInfo = 0;
+			}else if (winner == this.state.type) {
+				winnerInfo = 1;
+			}else{
+				winnerInfo = -1;
+			}
+
+			//check if the game is ended
+			if(endgame || winner){
+				this.setState({
+					status: 3,
+				});
+
 				let message = {
 					roundID : this.state.roundID,
-					isWinner: winStatus == this.state.type,
-					isGameOver: isGameOver
+					winner: winnerInfo,
 				}
-				this.state.socket.emit('gameOver', message)
+				this.state.socket.emit('endgame', message)
 			}
 		}
 	}
+	
+	// Setup the `beforeunload` event listener
+	setupBeforeUnloadListener() {
+	    window.addEventListener("beforeunload", (ev) => {
+	        ev.preventDefault();
+	        return 'Are you sure you want to leave?';
+	    });
+	}
+
+	componentDidMount() {
+        // Activate the event listener
+        this.setupBeforeUnloadListener();
+    }
 
 	render() {
-		const winner = calculateWinner(this.state.squares);
-		const gameOver = checkGameOver(this.state.squares);
+		let winner = condition.calculateWinner(this.state.squares);
+		let gameOver = condition.isGameEnded(this.state.squares);
 
-  		let status;
+  		let status = ui.showGameStatus(this.state.status);
+  		let endState = ui.showWinner(winner, this.state.type, gameOver, this.state.status);
+  		let turn = ui.showTurn(this.state.status, this.state.myTurn);
+  		let symbol = ui.showSymbol(this.state.type)
 
-	  	if (winner) {
-	  		status = 'Winner:' + winner;
-	  	}else if (gameOver){
-	  		status = 'Game ended without winner!';
-	  	}else{
-	  		if (this.state.myTurn) {
-	  			status = 'Your turn!';
-	  		}else{
-	  			status = 'Waiting opponent...';
-	  		}
-	  	}
-
-	  	let test1 = this.state.token;
+  		console.log(this.state.status)
 
     	return (
-			<div className="game">
+			<div className="game bg">
+				<div className="game-title">
+					<div>Tic - Tac - Toe</div>
+				</div>
+
 				<div className="game-board">
 					<Board 
 						squares={this.state.squares}
 						onClick={(i) => this.handleClick(i)}
 					/>
 				</div>
-				<div className="game-info">
-				  <div>{status}</div>
-				  <div>Your symbol: {this.state.type}</div>
+
+				<div className="game-info row">
+					<div className="status column left">
+						<div>{symbol}</div>
+						<div>{status}</div>
+					 	<div>{turn}</div>
+					 </div>
+					 <div className="column right">
+					 	<div className="endstate">{endState}</div>
+					 </div>
 				</div>
 			</div>
     );
   }
-}
-
-function calculateWinner(squares) {
-  const lines = [
-    [0, 1, 2],
-    [3, 4, 5],
-    [6, 7, 8],
-    [0, 3, 6],
-    [1, 4, 7],
-    [2, 5, 8],
-    [0, 4, 8],
-    [2, 4, 6],
-  ];
-  for (let i = 0; i < lines.length; i++) {
-    const [a, b, c] = lines[i];
-    if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-      return squares[a];
-    }
-  }
-  return null;
-}
-
-function checkGameOver(squares){
-	for (var i = 0; i < squares.length; i++) {
-		if (squares[i] == null) {
-			return false;
-		}
-	}
-	return true;
 }
 
 export default Game;
