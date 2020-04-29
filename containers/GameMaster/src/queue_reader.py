@@ -15,8 +15,6 @@ def json_deserializer(v):
 		log.exception('Unable to decode: %s', v)
 		return None
 
-print("HELLO11")
-
 producer = KafkaProducer(
 	bootstrap_servers='kafka:9092',
 	client_id='325235324',

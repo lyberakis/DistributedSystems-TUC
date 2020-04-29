@@ -18,4 +18,5 @@ COPY server/ .
 
 EXPOSE 8080
 EXPOSE 1337
-CMD [ "node", "server.js" ]
+
+ENTRYPOINT node server.js 8080 1337

@@ -1,5 +1,5 @@
 const io = require('socket.io')()
-const MongoClient = require('mongodb').MongoClient;
+// const MongoClient = require('mongodb').MongoClient;
 
 var myArgs = process.argv.slice(2);
 
@@ -13,6 +13,28 @@ var pending = {}
 // npm start
 // go to http://localhost:3000/?pm=1337&gm=9000&token=1
 // go to http://localhost:3000/?pm=1337&gm=9000&token=2
+
+var kafka = require('kafka-node');
+var HighLevelProducer = kafka.HighLevelProducer;
+var Producer = kafka.Producer;
+var KeyedMessage = kafka.KeyedMessage;
+var client = new kafka.KafkaClient({kafkaHost: 'kafka:9092'});
+var producer = new HighLevelProducer(client);
+var km = new KeyedMessage('key', 'message');
+var kafka_topic = 'scores';
+
+producer.on('error', function(err) {
+	console.log(err);
+	console.log('[kafka-producer -> '+kafka_topic+']: connection errored');
+});
+
+// producer.on('ready', function () {
+//     producer.send(payloads, function (err, data) {
+//         console.log(data);
+//     });
+// });
+ 
+// producer.on('error', function (err) {})
 
 io.on('connection', (socket) => {
   
@@ -171,6 +193,24 @@ function createScore(roundID, winner){
 	delete games[roundID];
 
 	console.log(score)
+
+
+	//Send the score to GameMaster via Kafka
+	let payloads = [
+	    {
+	      topic: kafka_topic,
+	      messages: JSON.stringify(score)
+	    }
+	];
+
+	
+	let push_status = producer.send(payloads, (err, data) => {
+		if (err) {
+			console.log('[kafka-producer -> '+kafka_topic+']: broker update failed');
+		} else {
+			console.log('[kafka-producer -> '+kafka_topic+']: broker update success');
+		}
+	});
 
 }
 
