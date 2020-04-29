@@ -17,6 +17,7 @@ services:
     image: playmaster
     networks:
       - games_net
+      - nosql_net
     # volumes:
     #   - ./containers/PlayMaster/logs:/etc/logs
     depends_on:
@@ -24,8 +25,8 @@ services:
     ports:
       - 1337:1337
       - 8080:8080
-    networks:
-      - nosql_net
+    depends_on:
+      - kafka
   generator:
     build: ./containers/generator
     image: generator
@@ -50,7 +51,7 @@ services:
       KAFKA_LISTENERS: INSIDE://:9092,OUTSIDE://:9094
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
-      KAFKA_CREATE_TOPICS: "input:4:1, output:4:1"
+      KAFKA_CREATE_TOPICS: "input:4:1, scores:4:1, output:4:1"
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false" 
       KAFKA_CLEANUP_POLICY: "delete"

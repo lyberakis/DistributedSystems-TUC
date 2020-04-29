@@ -3,6 +3,9 @@
 if [ "$1" == "input" ]; then
 	KAFKA_CONTAINER=$( docker ps --filter name=kafka --format={{.ID}})
 	 docker exec -t -i $KAFKA_CONTAINER kafka-console-consumer.sh   --bootstrap-server localhost:9092 --topic input --property print.key=true --property key.separator="-" --from-beginning
+elif [ "$1" == "scores" ]; then
+	KAFKA_CONTAINER=$( docker ps --filter name=kafka --format={{.ID}})
+	 docker exec -t -i $KAFKA_CONTAINER kafka-console-consumer.sh   --bootstrap-server localhost:9092 --topic scores --from-beginning
 elif [ "$1" == "output" ]; then
 	KAFKA_CONTAINER=$( docker ps --filter name=kafka --format={{.ID}})
 	 docker exec -t -i $KAFKA_CONTAINER kafka-console-consumer.sh   --bootstrap-server localhost:9092 --topic output --from-beginning

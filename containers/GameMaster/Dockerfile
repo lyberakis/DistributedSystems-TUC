@@ -8,5 +8,5 @@ COPY src .
 ENTRYPOINT ["python", "queue_reader.py"]
 ENTRYPOINT ["python", "db_update.py"]
 ENTRYPOINT ["python", "client_listener.py"]
-
+ENTRYPOINT ["python", "score_reader.py"]
 EXPOSE 9000

@@ -30,11 +30,6 @@ ol, ul {
   height:100%
 }
 
-.bg {
-  /* The image used */
-  
-}
-
 .board-row:after {
   clear: both;
   content: "";
