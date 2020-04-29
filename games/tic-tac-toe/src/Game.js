@@ -79,7 +79,7 @@ class Game extends React.Component {
 
   	
 	handleClick(i){
-	  	if (this.state.myTurn) {
+	  	if (this.state.myTurn && this.state.state !== 5) {
 			const squares = this.state.squares.slice();   //create a copy of the array
 
 			//if the game is over or the sqare is already filled, return
@@ -107,7 +107,7 @@ class Game extends React.Component {
 
 			if (winner == null) {
 				winnerInfo = 0;
-			}else if (winner == this.state.type) {
+			}else if (winner === this.state.type) {
 				winnerInfo = 1;
 			}else{
 				winnerInfo = -1;
@@ -144,14 +144,14 @@ class Game extends React.Component {
 	render() {
 		let winner = condition.calculateWinner(this.state.squares);
 		let gameOver = condition.isGameEnded(this.state.squares);
-
   		let status = ui.showGameStatus(this.state.status);
   		let endState = ui.showWinner(winner, this.state.type, gameOver, this.state.status);
-  		let turn = ui.showTurn(this.state.status, this.state.myTurn);
-  		let symbol = ui.showSymbol(this.state.type)
-
-  		console.log(this.state.status)
-
+  		
+  		if (this.state.status !== 5) {
+	  		var turn = ui.showTurn(this.state.status, this.state.myTurn);
+	  		var symbol = ui.showSymbol(this.state.type)
+	  	}
+	  	
     	return (
 			<div className="game bg">
 				<div className="game-title">

@@ -5,6 +5,7 @@ var myArgs = process.argv.slice(2);
 
 const PMID = "0683424";
 var games = {}   //find quickly the receiver
+var spectators = {}
 var pending = {}
 
 //How to TEST
@@ -96,10 +97,19 @@ io.on('connection', (socket) => {
 				'token': token,
 				'socket': socket
 			}
+			games[roundID]['spectators'] = [];
 
 		  console.log('first Player connected with token '+token)
 		  socket.emit('wait', {'roundID' : roundID})
 		}
+	}else if (token in spectators){
+
+		console.log('Spectator connected with token '+token)
+		let roundID = spectators[token];
+		games[roundID]['spectators'].push(socket);
+		delete spectators[token];
+		let board = Array(9)
+		socket.emit('viewer', board);
 	}else{
 		socket.disconnect()
 	}
@@ -114,6 +124,11 @@ io.on('connection', (socket) => {
 		//Transmit the board to the other player
 		let sender = players[0]['socket'] === socket ? 0 : 1;
 		players[invert(sender)]['socket'].emit('board', board)
+
+		for (i in games[roundID]['spectators']){
+			games[roundID]['spectators'][i].emit('viewer', board);
+			console.log("Transmit to spectator")
+		}
 
 	})
 
@@ -143,14 +158,16 @@ io.on('connection', (socket) => {
 
 	socket.on('disconnect', function (message) {
 
+		var found = false;
+
 		//Check every game
 		for (round in games) {
 			var players = games[round]['players'];
+			var spectators = games[round]['spectators'];
 
 			//check every player in the round
-			for (var i = 0; i < 2; i++) {
+			for (i in players) {
 				if (players[i] != undefined) {
-
 					//find who disconnected
 					if (players[i]['socket'] === socket) {
 
@@ -158,8 +175,14 @@ io.on('connection', (socket) => {
 						if (players[invert(i)] != undefined) {
 							players[invert(i)]['socket'].emit('endgame', null);
 							createScore(round, invert(i));
-							break;
 						}
+
+						for (j in spectators){
+							spectators[j].emit('endgame', null);
+						}
+						break;
+
+
 					}
 				}
 			}
@@ -232,19 +255,26 @@ const app = express();
 app.use(bodyParser.json());
 
 app.post('/', function(request, response){
-  let id = uniqid();
-  let game = request.body['game'];
-  let players = request.body['players'];
-  let tournament_id = request.body['tournament_id'];
-  let p1 = players[0];
-  let p2 = players[1];
+  // let id = uniqid();
+  var roundID = request.body['roundID'];
+  var type = request.body['type'];
+  var game = request.body['game'];
+  var players = request.body['players'];
 
-  pending[p1] = {
-	'roundID' : id,
-	'game' : game,
-	'tournament_id': tournament_id
-  };
-  pending[p2] = pending[p1];
+  if (type == 'active') {
+  	console.log("Received active game")
+	let p1 = players[0];
+	let p2 = players[1];
+	pending[p1] = {
+	'roundID' : roundID,
+	'game' : game
+	};
+	pending[p2] = pending[p1];
+  }else{
+  	spectators[players[0]] = roundID;
+  }
+
+  
   
   response.writeHead(200);
   response.end();

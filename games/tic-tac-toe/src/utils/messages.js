@@ -28,6 +28,12 @@ export function showGameStatus(status){
 		case 4:
 			message = 'The opponent left.';
 			break;
+		case 5:
+			message = 'Spectator mode.';
+			break;
+		default:
+			message = 'Undefined status.';
+			break;
 	}
 
 	return message;
@@ -37,12 +43,20 @@ export function showGameStatus(status){
 export function showWinner(win, symbol, end, status){
 	let message;
 
-	if ((symbol != null && win == symbol) || status == 4) {
-		message = 'VICTORY!';
-	}else if (win != null && win != symbol){
-		message = 'DEFEAT!';
-	}else if (win == null && end == true) {
-		message = 'TIE!';
+	if (status !== 5) {
+		if ((symbol !== null && win === symbol) || status === 4) {
+			message = 'VICTORY!';
+		}else if (win != null && win !== symbol){
+			message = 'DEFEAT!';
+		}else if (win == null && end === true) {
+			message = 'TIE!';
+		}
+	}else{
+		if (win !== null) {
+			message = 'WINNER: '+win;
+		}else if (end){
+			message = 'TIE!';
+		}
 	}
 
 	return message;
@@ -51,7 +65,7 @@ export function showWinner(win, symbol, end, status){
 export function showTurn(status, turn){
 	let message;
 
-	if (status == 2) {
+	if (status === 2) {
 		if (turn) {
 			message = 'Your turn.';
 		}else{

@@ -20,6 +20,8 @@ import * as condition from './gameConditions.js';
   //  2 => ready to play
   //  3 => the game is completed
   //  4 => winner because opponent left
+  //  5 => spectator mode
+
 
 // ==========================================
 // ==> Messages from client to playmaster <==
@@ -61,7 +63,7 @@ export function getArgumenets() {
   		'host': host,
   		'token': token,
   		'playmanster' : playmanster,
-  		'gamemaster' : gamemaster 
+  		'gamemaster' : gamemaster,
   	};
 
   	return args;
@@ -118,6 +120,15 @@ export function setListeners(obj){
         roundID: message['roundID']   //get the new round ID
       })
     }
+  });
+
+  //Both players are connected. The game can begin
+  obj.state.socket.on('viewer', board => {
+    console.log('VIWER')
+    obj.setState({
+      status: 5,
+      squares: board,
+    })
   });
 
 
