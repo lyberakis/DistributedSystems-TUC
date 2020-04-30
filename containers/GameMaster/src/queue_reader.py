@@ -1,79 +1,98 @@
-# import threading
-import time
-import json
-from kafka import KafkaConsumer, KafkaProducer
+from utils import kafkaDrivers as kafka
 from utils import log_settings
 import logging as log
+import uuid 
+import json
+import requests
+import pymongo
 
-
-def json_deserializer(v):
-	if v is None:
-		return None
-	try:
-		return json.loads(v.decode('utf-8'))
-	except json.decoder.JSONDecodeError:
-		log.exception('Unable to decode: %s', v)
-		return None
-
-producer = KafkaProducer(
-	bootstrap_servers='kafka:9092',
-	client_id='325235324',
-	value_serializer=lambda v: json.dumps(v).encode('utf-8'),
-	api_version=(0, 10, 1)
-	)
-
-consumer = KafkaConsumer(bootstrap_servers='kafka:9092',
-		auto_offset_reset='latest',
-		enable_auto_commit=True,
-		group_id='my-group',
-		value_deserializer=json_deserializer,
-		api_version=(0, 10, 1))
-
+consumer = kafka.createConsumer()
 consumer.subscribe(['input'])
 
+producer = kafka.createProducer()
 
-chess_queue = list()
-tic_queue = list()
+try:
+    # try to instantiate a client instance
+    myclient = pymongo.MongoClient(
+        host = [ 'mongodb:27017' ],
+        serverSelectionTimeoutMS = 3000, # 3 second timeout
+        username = "root",
+        password = "rootpassword",
+    )
+    log.info("db connection established")
+except:
+	log.exception("db connection")
 
-chess_pending = None
-tic_pending = None
+mydb = myclient["games"]
+pr = mydb["inprogress"]
+
+def initPlays():
+	plays = {};
+	plays['chess'] = {}
+	plays['chess']['members'] = 2
+	plays['chess']['queue'] = list()
+
+	plays['tic-tac-toe'] = {}
+	plays['tic-tac-toe']['members'] = 2
+	plays['tic-tac-toe']['queue'] = list()
+
+	return plays
+
+def findPlayMaster():
+	ports = {}
+	ports['server'] = 1337
+	ports['gate'] = 8080
+
+	return ports
+
+plays = initPlays()
 
 
 while True:
 	for message in consumer:
 		record = message.value
 		log.info(f'{record} received')
-		if record['game'] == 'chess':
-			if chess_pending is not None:
-				player1 = chess_pending['playerID']
-				player2 = record['playerID']
-				match = dict()
-				match["game"] = "chess"
-				match["players"] = [player1, player2]
-				producer.send('output', json.dumps(match))
-				chess_pending = None
-			else:
-				chess_pending = record
-		elif record['game'] == 'tic':
-			if tic_pending is not None:
-				player1 = tic_pending['playerID']
-				player2 = record['playerID']
-				match = dict()
-				match["game"] = "tic"
-				match["players"] = [player1, player2]
-				producer.send('output', json.dumps(match))
-				tic_pending = None
-			else:
-				tic_pending = record
-		# elif record['game'] == 'tic':
-		# 	tic_queue.append(record)
-		# 	if len(tic_queue) > 1:
-		# 		player1 = tic_queue.pop(0)['playerID']
-		# 		player2 = tic_queue.pop(1)['playerID']
-		# 		match = dict()
-		# 		match["game"] = "tic"
-		# 		match["players"] = [player1, player2]
-		# 		producer.send('output', json.dumps(match))
-		# 	else:
-		# 		tic_queue.append(record)
-		
+
+		game = record['game']
+
+		if game not in plays:
+			log.warning(f'{game} is invalid game!')
+			continue
+
+		plays[game]['queue'].append(record['token'])
+
+		if len(plays[game]['queue']) == plays[game]['members']:
+
+			# Assign the game to playmaster
+			assign = dict()
+			assign["type"] = "active"
+			assign["game"] = game
+			assign["roundID"] = uuid.uuid4().hex
+			assign["players"] = plays[game]['queue'].copy()
+
+			port = findPlayMaster()
+
+			url = 'http://playmaster:'+str(port['gate'])
+			headers = {'Content-Type': 'application/json'}
+			data = json.dumps(assign)
+
+			r = requests.post(url = url, data = data, headers=headers) 
+
+			log.info(f'{r.status_code} from PM')
+
+			# Respond to the webserver
+			response = dict()
+			response['gm'] = 9000
+			response['pm'] = port['server']
+			response['tokens'] = plays[game]['queue']
+
+			producer.send('output', json.dumps(assign))
+
+			# Save to DB
+			x = pr.insert_one(assign)
+
+			log.info(f'{x} from DB')
+
+			plays[game]['queue'].clear()
+
+
