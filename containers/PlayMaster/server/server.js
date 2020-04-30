@@ -57,10 +57,10 @@ io.on('connection', (socket) => {
 		if (roundID in games) {
 			//Configure second player's connection
 
-			games[roundID]['players'][1] ={
+			games[roundID]['players'].push({
 				'token': token,
 				'socket': socket
-			}
+			})
 
 			//Save to db 
 			gameCommit(games[roundID]);
@@ -92,11 +92,10 @@ io.on('connection', (socket) => {
 			games[roundID] = {}
 			games[roundID]['type'] = game;
 			games[roundID]['tournament_id'] = game;
-			games[roundID]['players'] = Array(2)
-			games[roundID]['players'][0] ={
+			games[roundID]['players']=[{
 				'token': token,
 				'socket': socket
-			}
+			}]
 			games[roundID]['spectators'] = [];
 
 		  console.log('first Player connected with token '+token)
@@ -200,11 +199,10 @@ function invert(a){
 function createScore(roundID, winner){
 
 	var score = {
-		tournament_id: games[roundID]['tournament_id'],
+		roundID: roundID,
 		game : games[roundID]['type'],
 		winner: null,
-		player1: games[roundID]['players'][0]['token'],
-		player2: games[roundID]['players'][1]['token'],
+		players: [games[roundID]['players'][0]['token'], games[roundID]['players'][1]['token']]
 	}
 
 	if (winner == null) {
