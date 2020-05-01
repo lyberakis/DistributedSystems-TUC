@@ -15,14 +15,14 @@ var pending = {}
 // go to http://localhost:3000/?pm=1337&gm=9000&token=1
 // go to http://localhost:3000/?pm=1337&gm=9000&token=2
 
-var kafka = require('kafka-node');
-var HighLevelProducer = kafka.HighLevelProducer;
-var Producer = kafka.Producer;
-var KeyedMessage = kafka.KeyedMessage;
-var client = new kafka.KafkaClient({kafkaHost: 'kafka:9092'});
-var producer = new HighLevelProducer(client);
-var km = new KeyedMessage('key', 'message');
-var kafka_topic = 'scores';
+// var kafka = require('kafka-node');
+// var HighLevelProducer = kafka.HighLevelProducer;
+// var Producer = kafka.Producer;
+// var KeyedMessage = kafka.KeyedMessage;
+// var client = new kafka.KafkaClient({kafkaHost: 'kafka:9092'});
+// var producer = new HighLevelProducer(client);
+// var km = new KeyedMessage('key', 'message');
+// var kafka_topic = 'scores';
 
 producer.on('error', function(err) {
 	console.log(err);
@@ -118,12 +118,27 @@ io.on('connection', (socket) => {
 	socket.on('update', function (message) {
 		let roundID = message['roundID']  //find the game
 		let board = message['board']
+		let progres = message['progress']
 		let players = games[roundID]['players']
 
-		//Transmit the board to the other player
-		let sender = players[0]['socket'] === socket ? 0 : 1;
-		players[invert(sender)]['socket'].emit('board', board)
+		let response = {
+			board: board,
+			progress: progress
+		};
 
+		//Transmit the board to the other player
+		var sender = players[0]['socket'] === socket ? 0 : 1;
+		players[invert(sender)]['socket'].emit('board', response)
+
+		//Check for the game progress
+		if (progress == 1) {
+			createScore(roundID, sender);
+		}else if (progress == 1) {
+			createScore(roundID, null);
+		}
+
+
+		//Forward the game to the spectator
 		for (i in games[roundID]['spectators']){
 			games[roundID]['spectators'][i].emit('viewer', board);
 			console.log("Transmit to spectator")
@@ -132,27 +147,27 @@ io.on('connection', (socket) => {
 	})
 
 
-	socket.on('endgame', function (message) {
-		let roundID = message['roundID'] 
-		let players = games[roundID]['players'];
-		let sender = players[0]['socket'] === socket ? 0 : 1;
+	// socket.on('endgame', function (message) {
+	// 	let roundID = message['roundID'] 
+	// 	let players = games[roundID]['players'];
+	// 	let sender = players[0]['socket'] === socket ? 0 : 1;
 
-		switch(message['winner']){
-			case 0:
-				createScore(roundID, null)
-				break;
-			case 1:
-				createScore(roundID, sender)
-				break;
-			case -1:
-				createScore(roundID, invert(sender))
-				break;
+	// 	switch(message['winner']){
+	// 		case 0:
+	// 			createScore(roundID, null)
+	// 			break;
+	// 		case 1:
+	// 			createScore(roundID, sender)
+	// 			break;
+	// 		case -1:
+	// 			createScore(roundID, invert(sender))
+	// 			break;
 
-		}
+	// 	}
 
-		delete games[roundID];
+	// 	delete games[roundID];
 
-	})
+	// })
 
 
 	socket.on('disconnect', function (message) {
@@ -217,21 +232,21 @@ function createScore(roundID, winner){
 
 
 	//Send the score to GameMaster via Kafka
-	let payloads = [
-	    {
-	      topic: kafka_topic,
-	      messages: JSON.stringify(score)
-	    }
-	];
+	// let payloads = [
+	//     {
+	//       topic: kafka_topic,
+	//       messages: JSON.stringify(score)
+	//     }
+	// ];
 
 	
-	let push_status = producer.send(payloads, (err, data) => {
-		if (err) {
-			console.log('[kafka-producer -> '+kafka_topic+']: broker update failed');
-		} else {
-			console.log('[kafka-producer -> '+kafka_topic+']: broker update success');
-		}
-	});
+	// let push_status = producer.send(payloads, (err, data) => {
+	// 	if (err) {
+	// 		console.log('[kafka-producer -> '+kafka_topic+']: broker update failed');
+	// 	} else {
+	// 		console.log('[kafka-producer -> '+kafka_topic+']: broker update success');
+	// 	}
+	// });
 
 }
 
