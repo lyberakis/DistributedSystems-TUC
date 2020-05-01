@@ -133,7 +133,7 @@ io.on('connection', (socket) => {
 		//Check for the game progress
 		if (progress == 1) {
 			createScore(roundID, sender);
-		}else if (progress == 1) {
+		}else if (progress == 2) {
 			createScore(roundID, null);
 		}
 
