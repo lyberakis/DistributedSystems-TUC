@@ -24,10 +24,10 @@ var pending = {}
 // var km = new KeyedMessage('key', 'message');
 // var kafka_topic = 'scores';
 
-producer.on('error', function(err) {
-	console.log(err);
-	console.log('[kafka-producer -> '+kafka_topic+']: connection errored');
-});
+// producer.on('error', function(err) {
+// 	console.log(err);
+// 	console.log('[kafka-producer -> '+kafka_topic+']: connection errored');
+// });
 
 // producer.on('ready', function () {
 //     producer.send(payloads, function (err, data) {
