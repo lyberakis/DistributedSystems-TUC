@@ -116,12 +116,12 @@ io.on('connection', (socket) => {
 
 	//read the board
 	socket.on('update', function (message) {
-		let roundID = message['roundID']  //find the game
-		let board = message['board']
-		let progres = message['progress']
-		let players = games[roundID]['players']
+		var roundID = message['roundID']  //find the game
+		var board = message['board']
+		var progress = message['progress']
+		var players = games[roundID]['players']
 
-		let response = {
+		var response = {
 			board: board,
 			progress: progress
 		};
