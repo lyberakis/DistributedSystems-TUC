@@ -213,7 +213,7 @@ span.psw {
 /* The Modal (background) */
 .bg {
   /* The image used */
-  background-image: url("../img/wallpaper_index.jpg");
+  background-image: url("../img/wallpaper_index2.jpg");
 
   /* Full height */
   height: 100%; 
@@ -286,4 +286,44 @@ span.psw {
   .cancelbtn {
      width: 100%;
   }
+}
+
+
+/*PORTAL*/
+.games {
+  margin: auto;
+  width: 80%;
+  text-align: center;
+}
+.games h1{
+  font-size: 30px;
+  text-align: center;
+  font-weight: 1000;
+  opacity: 0.8;
+  text-transform: uppercase;
+  color: white;
+}
+
+
+.games .item{
+  display: inline-block;
+  margin: 10px;
+}
+
+.games .item img{
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 2px;
+  width: 150px;
+  height: 150px;
+  background-color: white;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: 50% 50%;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+
+.games .item img:hover{
+  box-shadow: 0 4px 8px 0 rgb(255, 1, 1), 0 6px 20px 0 rgb(72, 10, 10);
+  cursor: pointer;
 }

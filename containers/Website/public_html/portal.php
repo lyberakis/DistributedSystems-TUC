@@ -24,7 +24,18 @@ require_once 'config.php';
 <body>
     <?php include 'menu.php'; ?>
     <div id="content" class="bg">
-        <div class="container ">
+        <div class="container">
+            <div class="games">
+                <h1>Game List</h1>
+    
+                <div class="item">
+                    <img src="img/chess_icon.png">
+                </div>
+
+                <div class="item">
+                    <img src="img/tic-tac-toe.png">
+                </div>
+            </div>
             
         </div>
     </div>
