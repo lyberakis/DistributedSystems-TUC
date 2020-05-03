@@ -327,3 +327,11 @@ span.psw {
   box-shadow: 0 4px 8px 0 rgb(255, 1, 1), 0 6px 20px 0 rgb(72, 10, 10);
   cursor: pointer;
 }
+
+/*GAME page*/
+iframe {
+    display: block;
+    border: none;
+    height: calc(100vh - 90px);
+    width: 100%;
+}

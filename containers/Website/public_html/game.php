@@ -23,20 +23,7 @@ require_once 'config.php';
 <body>
     <?php include 'menu.php'; ?>
     <div id="content" class="bg">
-        <div class="container">
-            <div class="games">
-                <h1>Games List</h1>
-    
-                <div class="item">
-                    <img src="img/chess_icon.png">
-                </div>
-
-                <div class="item">
-                    <img src="img/tic-tac-toe.png">
-                </div>
-            </div>
-            
-        </div>
+         <iframe src="tic-tac-toe/build/index.html?token=1&gm=3000&pm=1337" width="100%" ></iframe>
     </div>
     <?php include 'footer.php'; ?> 
 </body>
