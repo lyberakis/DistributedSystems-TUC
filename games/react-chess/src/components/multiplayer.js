@@ -108,11 +108,10 @@ export function setListeners(obj){
   obj.state.socket.on('init', message => {
 
     //Check if the game is new or it is continued from server fault.
-    if (obj.state.roundID === null){
+    if (obj.state.type === null){
       obj.setState({
         connectionStatus: 2,
-        turn: 'white',
-        myTurn: true,
+        myTurn: message['turn'],
         roundID: message['roundID']
       })
     }else{
@@ -131,22 +130,30 @@ export function setListeners(obj){
     obj.setState({
       connectionStatus: 5,
       squares: classes,
-      myTurn: true
+      myTurn: false
     })
   });
 
 
   //Receive the updated board
   obj.state.socket.on('board', board => {
-    var classes = stringsToClasses(board);
+    var classes = stringsToClasses(board["board"]);
+    var whiteFallenSoldiers = stringsToClasses(board["whiteFallenSoldiers"]);
+    var blackFallenSoldiers = stringsToClasses(board["blackFallenSoldiers"]);
 
       obj.setState({
         squares: classes,
-        turn: 'black',
+        turn: obj.state.turn === 'white'? 'black' : 'white',
+        whiteFallenSoldiers: whiteFallenSoldiers,
+        blackFallenSoldiers: blackFallenSoldiers,
+        status: board['status'],
+        kingStatus: board['kingStatus'],
+        player: obj.state.player === 1? 2: 1,
+        myTurn: true,
       })
 
       //Set Game progress
-      if (obj.state.progress!==0) {
+      if (board['progress']!==0) {
         obj.setState({
           connectionStatus: 3,
         })
@@ -224,30 +231,32 @@ export function reconnect(obj, port){
 function stringsToClasses(squares){
   var classes = [];
 
-  for (let i=0; i<squares["board"].length; i++){
-    let splitter = squares["board"][i].toString().split(" ");
+  if (squares){
+    for (let i=0; i<squares.length; i++){
+      let splitter = squares[i].toString().split(" ");
 
-    switch(splitter[0]){
-      case "King":
-        classes.push(new King(parseInt(splitter[1])));
-        break;
-      case "Pawn":
-        classes.push(new Pawn(parseInt(splitter[1])));
-        break;
-      case "Queen":
-        classes.push(new Queen(parseInt(splitter[1])));
-        break;
-      case "Bishop":
-        classes.push(new Bishop(parseInt(splitter[1])));
-        break;
-      case "Knight":
-        classes.push(new Knight(parseInt(splitter[1])));
-        break;
-      case "Rook":
-        classes.push(new Rook(parseInt(splitter[1])));
-        break;
-      default:
-        classes.push(null);
+      switch(splitter[0]){
+        case "King":
+          classes.push(new King(parseInt(splitter[1])));
+          break;
+        case "Pawn":
+          classes.push(new Pawn(parseInt(splitter[1])));
+          break;
+        case "Queen":
+          classes.push(new Queen(parseInt(splitter[1])));
+          break;
+        case "Bishop":
+          classes.push(new Bishop(parseInt(splitter[1])));
+          break;
+        case "Knight":
+          classes.push(new Knight(parseInt(splitter[1])));
+          break;
+        case "Rook":
+          classes.push(new Rook(parseInt(splitter[1])));
+          break;
+        default:
+          classes.push(null);
+      }
     }
   }
   

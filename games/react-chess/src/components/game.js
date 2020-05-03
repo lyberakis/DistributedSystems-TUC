@@ -23,6 +23,7 @@ export default class Game extends React.Component {
       sourceSelection: -1,
       kingStatus: '',
       turn: 'white',
+      type: null,
       myTurn: false,
       changePawn: -1,
       host: args['host'],
@@ -205,14 +206,19 @@ export default class Game extends React.Component {
               turn: turn,
               type: turn,
               kingStatus: '',
+              myTurn: !this.state.myTurn,
               changePawn: -1,
               status: "Castling occured.",
               sourceSelection: -1,
             });
             var textSquares = this.classesToStrings(squares);
+            var textWhiteFallenSoldiers = this.classesToStrings(this.state.whiteFallenSoldiers);
+            var textBlackFallenSoldiers = this.classesToStrings(this.state.blackFallenSoldiers);
             let message = {
               roundID : this.state.roundID,
               board : textSquares,
+              whiteFallenSoldiers: textWhiteFallenSoldiers,
+              blackFallenSoldiers: textBlackFallenSoldiers,
               progress : 0
             }
             this.state.socket.emit('update', message);
@@ -252,6 +258,7 @@ export default class Game extends React.Component {
             if (this.state.kingStatus==="Check.")
               check=true;
 
+            var kingStatus = 0;
             const saveSquare = squares[i];
             squares[i] = squares[this.state.sourceSelection];
             squares[this.state.sourceSelection] = null;
@@ -262,6 +269,7 @@ export default class Game extends React.Component {
               squares: squares,
               whiteFallenSoldiers: whiteFallenSoldiers,
               blackFallenSoldiers: blackFallenSoldiers,
+              myTurn: !this.state.myTurn,
               player: player,
               status: '',
               kingStatus: '',
@@ -291,11 +299,13 @@ export default class Game extends React.Component {
                           whiteFallenSoldiers: whiteFallenSoldiers,
                           blackFallenSoldiers: blackFallenSoldiers,
                           player: player,
+                          myTurn: this.state.myTurn,
                           kingStatus: "Check.",
                           status: 'Wrong selection. You need to avoid check.',
                           turn: turn,
                           type: turn
                         });
+                        kingStatus=-1;
                         moveOn=false;
                         break;
                       }
@@ -323,12 +333,14 @@ export default class Game extends React.Component {
                           squares: squares,
                           whiteFallenSoldiers: whiteFallenSoldiers,
                           blackFallenSoldiers: blackFallenSoldiers,
+                          myTurn: this.state.myTurn,
                           player: player,
                           kingStatus: '',
                           status: 'Wrong selection. You cannot go to check.',
                           turn: turn,
                           type: turn
                         });
+                        kingStatus=-1;
                         moveOn=false;
                         break;
                       }
@@ -473,10 +485,13 @@ export default class Game extends React.Component {
                             itisCheck=false;
                         }
                                               
-                        if (itisCheck===true)
+                        if (itisCheck===true){
                           this.setState({kingStatus: "Check."});
-                        else
+                          kingStatus=1;
+                        }else{
                           this.setState({kingStatus: "Checkmate."});
+                          kingStatus=2;
+                        }
 
                         break;
                       }
@@ -499,6 +514,7 @@ export default class Game extends React.Component {
 
               if (blackPieces===1 && whitePieces===1){
                 this.setState({kingStatus: "Stalemate."});
+                kingStatus=3;
               }else if ((blackPieces===1 && this.state.player===1) || (whitePieces===1 && this.state.player===2)){
                 for (let j=0; j<squares.length; j++){
                   if (squares[j] && squares[j].constructor.name==="King" && squares[j].player!==this.state.player){//find the king
@@ -608,8 +624,10 @@ export default class Game extends React.Component {
                     }else
                       countMoves++;
                     
-                   if (countMoves===8)
+                   if (countMoves===8){
                       this.setState({kingStatus: "Stalemate."});
+                      kingStatus=3;
+                   }
 
                     break;
                   }
@@ -633,29 +651,50 @@ export default class Game extends React.Component {
                 }
               }
             }
-            var textSquares = this.classesToStrings(squares);
-            var message = {
-              roundID : this.state.roundID,
-              board : textSquares,
-              progress : 0
-            }
+            if (kingStatus!==-1){
+              var textSquares = this.classesToStrings(squares);
+              var textWhiteFallenSoldiers = this.classesToStrings(whiteFallenSoldiers);
+              var textBlackFallenSoldiers = this.classesToStrings(blackFallenSoldiers);
+              var message = {
+                roundID : this.state.roundID,
+                board : textSquares,
+                whiteFallenSoldiers: textWhiteFallenSoldiers,
+                blackFallenSoldiers: textBlackFallenSoldiers,
+                kingStatus: '',
+                progress : 0
+              }
 
-            if (this.state.kingStatus==='Checkmate.'){
-              message = {
-                roundID : this.state.roundID,
-                board : textSquares,
-                progress : 1
+              if (kingStatus===2){
+                message = {
+                  roundID : this.state.roundID,
+                  board : textSquares,
+                  kingStatus: 'Checkmate.',
+                  whiteFallenSoldiers: textWhiteFallenSoldiers,
+                  blackFallenSoldiers: textBlackFallenSoldiers,
+                  progress : 1
+                }
+              }else if(kingStatus===3){
+                message = {
+                  roundID : this.state.roundID,
+                  board : textSquares,
+                  kingStatus: 'Stalemate.',
+                  whiteFallenSoldiers: textWhiteFallenSoldiers,
+                  blackFallenSoldiers: textBlackFallenSoldiers,
+                  progress : 2
+                }
+              }else if(kingStatus===1){
+                message = {
+                  roundID : this.state.roundID,
+                  board : textSquares,
+                  whiteFallenSoldiers: textWhiteFallenSoldiers,
+                  blackFallenSoldiers: textBlackFallenSoldiers,
+                  kingStatus: 'Check.',
+                  progress : 0
+                }
               }
-            }else if(this.state.kingStatus==='Stalemate.'){
-              message = {
-                roundID : this.state.roundID,
-                board : textSquares,
-                progress : 2
-              }
+                        
+              this.state.socket.emit('update', message);
             }
-                      
-            this.state.socket.emit('update', message);
-            
           }else{
             this.setState({
               status: "Wrong selection. Choose valid source and destination again.",

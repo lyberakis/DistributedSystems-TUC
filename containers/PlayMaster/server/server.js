@@ -128,7 +128,7 @@ io.on('connection', (socket) => {
 
 		//Transmit the board to the other player
 		var sender = players[0]['socket'] === socket ? 0 : 1;
-		players[invert(sender)]['socket'].emit('board', response)
+		players[invert(sender)]['socket'].emit('board', message)
 
 		//Check for the game progress
 		if (progress == 1) {
