@@ -11,9 +11,10 @@ $email_th = htmlspecialchars($_SESSION["email"]);
 <div id="header">
     <ul class="topnav">
         <li><a class="active" href="portal.php">Board Games</a></li>
-        <li><a href="AddStudent.php">Scores</a></li>
-        <li><a href="EditStudent.php">Leader Board</a></li>
-        <li><a href="DeleteStudent.php">Admin Panel</a></li>
+        <li><a href="scores.php">Scores</a></li>
+        <li><a href="leaderboard.php">Leader Board</a></li>
+        <li><a href="tournament.php">Official Panel</a></li>
+        <li><a href="admin.php">Admin Panel</a></li>
         <li style="float:right" class="dropdown">
             <a class="dropbtn"><?php echo $firstname_th." ".$surname_th; ?></a>
             <div class="dropdown-content">
