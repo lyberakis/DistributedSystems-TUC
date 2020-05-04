@@ -1,9 +1,43 @@
+var myArgs = process.argv.slice(2);
+var os = require("os");
+var hostname = os.hostname();
+
+var zookeeper = require('node-zookeeper-client');
+ 
+var client = zookeeper.createClient('zookeeper:2181');
+var path = '/games/playmaster/'+hostname;
+var mystate = {
+	'cmd_port' : myArgs[0],
+	'game_port' : myArgs[1],
+	'games' : 0,
+	};
+
+console.log(mystate)
+
+client.once('connected', function () {
+    console.log('Connected to the server.');
+ 
+    client.create(
+	    path,
+	    Buffer.from(JSON.stringify(mystate)),
+	    zookeeper.CreateMode.EPHEMERAL, 
+    	function (error) {
+	        if (error) {
+	            console.log('Failed to create node: %s due to: %s.', path, error);
+	        } else {
+	            console.log('Node: %s is successfully created.', path);
+	        }
+ 
+    });
+});
+ 
+client.connect();
+
 const io = require('socket.io')()
 // const MongoClient = require('mongodb').MongoClient;
 
-var myArgs = process.argv.slice(2);
 
-const PMID = "0683424";
+
 var games = {}   //find quickly the receiver
 var spectators = {}
 var pending = {}
@@ -63,7 +97,7 @@ io.on('connection', (socket) => {
 			})
 
 			//Save to db 
-			gameCommit(games[roundID]);
+			// gameCommit(games[roundID]);
 
 			console.log('second Player with token '+token)
 
@@ -145,30 +179,6 @@ io.on('connection', (socket) => {
 		}
 
 	})
-
-
-	// socket.on('endgame', function (message) {
-	// 	let roundID = message['roundID'] 
-	// 	let players = games[roundID]['players'];
-	// 	let sender = players[0]['socket'] === socket ? 0 : 1;
-
-	// 	switch(message['winner']){
-	// 		case 0:
-	// 			createScore(roundID, null)
-	// 			break;
-	// 		case 1:
-	// 			createScore(roundID, sender)
-	// 			break;
-	// 		case -1:
-	// 			createScore(roundID, invert(sender))
-	// 			break;
-
-	// 	}
-
-	// 	delete games[roundID];
-
-	// })
-
 
 	socket.on('disconnect', function (message) {
 
@@ -291,6 +301,22 @@ app.post('/', function(request, response){
   }else{
   	spectators[players[0]] = roundID;
   }
+	
+	mystate = {
+		'cmd_port' : myArgs[0],
+		'game_port' : myArgs[1],
+		'games' : 1,
+	};
+
+
+	client.setData(path, Buffer.from(JSON.stringify(mystate)), 1, function (error, stat) {
+	    if (error) {
+	        console.log(error.stack);
+	        return;
+	    }
+	 
+	    console.log('Data is set.');
+	});
 
   
   
@@ -328,7 +354,7 @@ console.log('Listening on port for GM ' + port_gm + '...')
 //   });
 // });
 
-function gameCommit(game) {
+//function gameCommit(game) {
   // let players = game['players']
   // let data = {
   //   type: game['type'],
@@ -338,15 +364,15 @@ function gameCommit(game) {
   // dbo.collection(PMID).insertOne(data, function(err, res) {
   //   if (err) throw err;
   // });
-}
+//}
 
-function gameFree(roundID) {
+//function gameFree(roundID) {
   // let myquery = {roundID: roundID };
 
   // dbo.collection(PMID).deleteOne(myquery, function(err, obj) {
   //   if (err) throw err;
   // });
-}
+//}
 
 
 
