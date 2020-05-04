@@ -140,15 +140,23 @@ export function setListeners(obj){
     var classes = stringsToClasses(board["board"]);
     var whiteFallenSoldiers = stringsToClasses(board["whiteFallenSoldiers"]);
     var blackFallenSoldiers = stringsToClasses(board["blackFallenSoldiers"]);
+    var turn, player;
+    if (!board['dontChange']){
+      turn = obj.state.turn === 'white'? 'black' : 'white';
+      player = obj.state.player === 1? 2: 1;
+    }else{
+      turn = obj.state.turn;
+      player = obj.state.player;
+    }
 
       obj.setState({
         squares: classes,
-        turn: obj.state.turn === 'white'? 'black' : 'white',
+        turn: turn,
         whiteFallenSoldiers: whiteFallenSoldiers,
         blackFallenSoldiers: blackFallenSoldiers,
         status: board['status'],
         kingStatus: board['kingStatus'],
-        player: obj.state.player === 1? 2: 1,
+        player: player,
         myTurn: true,
       })
 
@@ -262,4 +270,3 @@ function stringsToClasses(squares){
   
   return classes;
 }
-

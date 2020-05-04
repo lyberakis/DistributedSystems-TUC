@@ -652,6 +652,8 @@ export default class Game extends React.Component {
               }
             }
             if (kingStatus!==-1){
+
+
               var textSquares = this.classesToStrings(squares);
               var textWhiteFallenSoldiers = this.classesToStrings(whiteFallenSoldiers);
               var textBlackFallenSoldiers = this.classesToStrings(blackFallenSoldiers);
@@ -786,6 +788,13 @@ export default class Game extends React.Component {
         changePawn: -1
       });
     }
+    var textSquares = this.classesToStrings(this.state.squares);
+    var message = {
+      roundID : this.state.roundID,
+      board: textSquares,
+      dontChange: true
+    }
+    this.state.socket.emit('update', message);
   }
 
   setQueen(){
@@ -803,6 +812,13 @@ export default class Game extends React.Component {
         changePawn: -1
       });
     }
+    var textSquares = this.classesToStrings(this.state.squares);
+    var message = {
+      roundID : this.state.roundID,
+      board: textSquares,
+      dontChange: true
+    }
+    this.state.socket.emit('update', message);
   }
 
   setKnight(){
@@ -820,6 +836,13 @@ export default class Game extends React.Component {
         changePawn: -1
       });
     }
+    var textSquares = this.classesToStrings(this.state.squares);
+    var message = {
+      roundID : this.state.roundID,
+      board: textSquares,
+      dontChange: true
+    }
+    this.state.socket.emit('update', message);
   }
 
   setRook(){
@@ -837,6 +860,13 @@ export default class Game extends React.Component {
         changePawn: -1
       });
     }
+    var textSquares = this.classesToStrings(this.state.squares);
+    var message = {
+      roundID : this.state.roundID,
+      board: textSquares,
+      dontChange: true
+    }
+    this.state.socket.emit('update', message);
   }
 
   render() {
