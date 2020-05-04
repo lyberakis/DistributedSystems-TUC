@@ -1,0 +1,410 @@
+*{
+  box-sizing: border-box;
+  font-family: 'Cairo', sans-serif;
+  font-size: 16px;
+}
+
+html,
+body {
+  position: relative;
+  min-height: 100%;
+  margin:0px;
+  padding: 0px;
+}
+
+body {
+  background-color: #006c82;
+  position: relative;
+}
+
+/*Navigation Bar*/
+#header ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: #333;
+}
+
+#header li {
+  float: left;
+}
+
+#header li a, #header .dropbtn {
+  display: inline-block;
+  color: white;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
+}
+
+#header li a:hover:not(.active), #header .dropdown:hover #header .dropbtn {
+  background-color: #111;
+  cursor: pointer;
+}
+
+#header .active {
+  background-color: #4CAF50;
+}
+
+
+#header li.dropdown {
+  display: inline-block;
+}
+
+#header .dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f9f9f9;
+  min-width: 93.7px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+
+#header .dropdown-content a {
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+  text-align: left;
+}
+
+#header .dropdown-content a:hover {
+  color: #4CAF50 !important;
+  background-color: white !important;
+}
+
+#header .dropdown:hover .dropdown-content {
+  display: block;
+}
+
+#header .button {
+  background-color: #4CAF50; /* Green */
+  border: none;
+  color: white;
+  padding: 16px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 4px;
+  -webkit-transition-duration: 0.4s; 
+  transition-duration: 0.4s;
+  cursor: pointer;
+}
+
+#header .button_back {
+  background-color: white; 
+  color: black; 
+  border: 2px solid #4CAF50;
+  position: relative;
+  left: 0px;
+  top: 0px;
+}
+
+#header .button_back:hover {
+  background-color: #4CAF50;
+  color: white;
+}
+
+/*Content section of the page*/
+#content{
+  position: relative;
+  padding: 1px;
+}
+
+/* Footer */
+
+#footer {
+  width:100%;
+  height:40px;
+  background-color: #333;
+  color: white;
+  text-align: center;
+  overflow:hidden;
+  display : flex;
+  align-items : center;
+}
+
+.footer_text{
+  text-align: center;
+  margin:auto;
+}
+
+/* unvisited link */
+.footer_text a:link {
+  color: white;
+  text-decoration: none;
+}
+
+/* visited link */
+.footer_text a:visited {
+  color: white;
+  text-decoration: none;
+}
+
+/* mouse over link */
+.footer_text a:hover {
+  color: #056b80;
+  text-decoration: none;
+}
+
+/* selected link */
+.footer_text a:active {
+  color: white;
+  text-decoration: none;
+}
+
+
+/* Form style */
+input[type=text], input[type=password] {
+  width: 100%;
+  padding: 12px 20px;
+  margin: 8px 0;
+  display: inline-block;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+}
+
+/* Set a style for all buttons */
+button {
+  background-color: #4CAF50;
+  color: white;
+  padding: 14px 20px;
+  /*margin: 8px 0;*/
+  border: none;
+  cursor: pointer;
+  width: 100%;
+}
+
+button:hover {
+  opacity: 0.8;
+}
+
+/* Extra styles for the cancel button */
+.cancelbtn {
+  width: auto;
+  padding: 10px 18px;
+  background-color: #f44336;
+}
+
+/* Center the image and position the close button */
+.imgcontainer {
+  text-align: center;
+  margin: 24px 0 12px 0;
+  position: relative;
+}
+
+img.avatar {
+  width: 200px;
+  border-radius: 50%;
+}
+
+.container {
+  margin: 0px 20px;
+  padding: 16px;
+}
+
+span.psw {
+  float: right;
+  padding-top: 16px;
+}
+
+/* The Modal (background) */
+.bg {
+  /* The image used */
+  background-image: url("../img/wallpaper_index2.jpg");
+
+  /* Full height */
+  height: 100%; 
+
+  /* Center and scale the image nicely */
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+.modal {
+  display: none; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 1; /* Sit on top */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  /*overflow: auto;*/ /* Enable scroll if needed */
+  background-color: rgb(0,0,0); /* Fallback color */
+  background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+  padding-top: 60px;
+}
+
+/* Modal Content/Box */
+.modal-content {
+  background-color: #fefefe;
+  margin: 5% auto 15% auto; /* 5% from the top, 15% from the bottom and centered */
+  border: 1px solid #888;
+  width: 40%; /* Could be more or less, depending on screen size */
+}
+
+/* The Close Button (x) */
+.close {
+  position: absolute;
+  right: 25px;
+  top: 0;
+  color: #000;
+  font-size: 35px;
+  font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+  color: red;
+  cursor: pointer;
+}
+
+/* Add Zoom Animation */
+.animate {
+  -webkit-animation: animatezoom 0.6s;
+  animation: animatezoom 0.6s
+}
+
+@-webkit-keyframes animatezoom {
+  from {-webkit-transform: scale(0)} 
+  to {-webkit-transform: scale(1)}
+}
+  
+@keyframes animatezoom {
+  from {transform: scale(0)} 
+  to {transform: scale(1)}
+}
+
+/* Change styles for span and cancel button on extra small screens */
+@media screen and (max-width: 300px) {
+  span.psw {
+     display: block;
+     float: none;
+  }
+  .cancelbtn {
+     width: 100%;
+  }
+}
+
+
+/*PORTAL*/
+.games {
+  margin: auto;
+  width: 80%;
+  text-align: center;
+}
+.games h1{
+  font-size: 30px;
+  text-align: center;
+  font-weight: 1000;
+  opacity: 0.8;
+  text-transform: uppercase;
+  color: white;
+}
+
+
+.games .item{
+  display: inline-block;
+  margin: 10px;
+}
+
+.games .item img{
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 2px;
+  width: 150px;
+  height: 150px;
+  background-color: white;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: 50% 50%;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+
+.games .item img:hover{
+  box-shadow: 0 4px 8px 0 rgb(255, 1, 1), 0 6px 20px 0 rgb(72, 10, 10);
+  cursor: pointer;
+}
+
+/*GAME page*/
+iframe {
+    display: block;
+    border: none;
+    height: calc(100vh - 90px);
+    width: 100%;
+}
+
+/*forms */
+.admin_form {
+    width: 60%;
+    background-color: #ffffff;
+    box-shadow: 0 0 9px 0 rgba(0, 0, 0, 0.3);
+    margin: 100px auto;
+}
+
+.admin_form h1 {
+    text-align: center;
+    color: #5b6574;
+    font-size: 24px;
+    padding: 20px 0 20px 0;
+    border-bottom: 1px solid #dee0e4;
+}
+
+.admin_form p {
+  text-align: center;
+}
+
+
+.admin_form input[type=text], select, textarea {
+  width: 100%;
+  height: 44px;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  resize: vertical;
+}
+
+.admin_form input[type=date]{
+  height: 44px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.admin_form label {
+  padding: 12px 12px 12px 0;
+  display: inline-block;
+
+}
+
+.admin_form input[type=submit] {
+  background-color: #4CAF50;
+  color: white;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  float: right;
+  margin: 10px;
+}
+
+.admin_form input[type=submit]:hover {
+  background-color: #45a049;
+}
+
+input[readonly] {
+  cursor: not-allowed;
+  background-color: #0000002b;
+}
+
+.admin_form .col-md-9 {
+  margin-bottom: 10px;
+}
+
+.notifier{
+  text-align: center;
+  margin-top: 15px;
+  font-weight: bold;
+}
+

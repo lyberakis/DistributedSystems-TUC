@@ -45,54 +45,75 @@ def findPlayMaster():
 
 	return ports
 
-plays = initPlays()
+
+def assignPlay(pair):
+	port = findPlayMaster()
+
+	url = 'http://playmaster:'+str(port['gate'])
+	headers = {'Content-Type': 'application/json'}
+	data = json.dumps(pair)
+
+	r = requests.post(url = url, data = data, headers=headers)
+	
+	return r.status_code
+
+def practice(game):
+	game = record['game']
+	plays[game]['queue'].append(record['token'])
+
+	# Check if there are enough players for the round
+	if len(plays[game]['queue']) == plays[game]['members']:
+
+		# Assign the game to playmaster
+		pair = dict()
+		pair["type"] = "active"
+		pair["game"] = game
+		pair["roundID"] = uuid.uuid4().hex
+		pair["players"] = plays[game]['queue'].copy()
+		status = assignPlay(pair)
+		log.info(f'{status} from PM')
+
+		# Respond to the webserver
+		response = dict()
+		response['gm'] = 9000
+		response['pm'] = port['server']
+		response['tokens'] = plays[game]['queue']
+		producer.send('output', json.dumps(pair))
+
+		# Save to DB
+		x = pr.insert_one(assign)
+		log.info(f'{x} from DB')
+		plays[game]['queue'].clear()
 
 
-while True:
+def tournament(record):
+	game = record['game']
+	tournament = record['tournament']
+
+
+def readRecords(consumer, producer):
 	for message in consumer:
 		record = message.value
 		log.info(f'{record} received')
 
-		game = record['game']
-
-		if game not in plays:
+		# Check if the game type is valid
+		if record['game'] not in plays:
 			log.warning(f'{game} is invalid game!')
 			continue
 
-		plays[game]['queue'].append(record['token'])
+		
+		if record['tournament'] is None:
+			practice(record)
+		else:
+			tournament(record)
 
-		if len(plays[game]['queue']) == plays[game]['members']:
+		
 
-			# Assign the game to playmaster
-			assign = dict()
-			assign["type"] = "active"
-			assign["game"] = game
-			assign["roundID"] = uuid.uuid4().hex
-			assign["players"] = plays[game]['queue'].copy()
+plays = initPlays()
 
-			port = findPlayMaster()
 
-			url = 'http://playmaster:'+str(port['gate'])
-			headers = {'Content-Type': 'application/json'}
-			data = json.dumps(assign)
-
-			r = requests.post(url = url, data = data, headers=headers) 
-
-			log.info(f'{r.status_code} from PM')
-
-			# Respond to the webserver
-			response = dict()
-			response['gm'] = 9000
-			response['pm'] = port['server']
-			response['tokens'] = plays[game]['queue']
-
-			producer.send('output', json.dumps(assign))
-
-			# Save to DB
-			x = pr.insert_one(assign)
-
-			log.info(f'{x} from DB')
-
-			plays[game]['queue'].clear()
+while True:
+	handlePairs(consumer, producer)
+	
 
 

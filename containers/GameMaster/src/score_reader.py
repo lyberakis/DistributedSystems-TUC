@@ -25,12 +25,18 @@ mydb = myclient["games"]
 prog = mydb["inprogress"]
 compl = mydb["completed"]
 
-while True:
+def handleScore(consumer):
 	for message in consumer:
 		record = message.value
 		log.info(f'{record} received')
+
+		# check for tournament 
 		
 		myquery = { "roundID": record['roundID'] }
 		prog.delete_one(myquery)
 
 		compl.insert_one(record)
+
+while True:
+	handleScore(consumer)
+	
