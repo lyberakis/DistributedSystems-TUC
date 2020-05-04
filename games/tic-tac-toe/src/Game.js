@@ -94,23 +94,14 @@ class Game extends React.Component {
 				myTurn: !this.state.myTurn,
 			});
 
-			let message = {
-				roundID : this.state.roundID,
-				board : squares
-			}
-
-			this.state.socket.emit('update', message)
-
 			let winner = condition.calculateWinner(squares);
 			let endgame = condition.isGameEnded(squares);
-			let winnerInfo = null;
+			var progress = 0;
 
-			if (winner == null) {
-				winnerInfo = 0;
-			}else if (winner === this.state.type) {
-				winnerInfo = 1;
-			}else{
-				winnerInfo = -1;
+			if (winner === this.state.type) {   //check if you won
+				progress = 1;
+			}else if (winner === null && endgame) {  //the game is ended and nobody won
+				progress = 2;
 			}
 
 			//check if the game is ended
@@ -118,13 +109,18 @@ class Game extends React.Component {
 				this.setState({
 					status: 3,
 				});
-
-				let message = {
-					roundID : this.state.roundID,
-					winner: winnerInfo,
-				}
-				this.state.socket.emit('endgame', message)
+	
 			}
+
+			let message = {
+				roundID : this.state.roundID,
+				board : squares,
+				progress: progress,
+			}
+
+			console.log(message)
+
+			this.state.socket.emit('update', message)
 		}
 	}
 	

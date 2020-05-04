@@ -130,18 +130,18 @@ io.on('connection', (socket) => {
 		var sender = players[0]['socket'] === socket ? 0 : 1;
 		players[invert(sender)]['socket'].emit('board', message)
 
+		//Forward the game to the spectator
+		for (i in games[roundID]['spectators']){
+			games[roundID]['spectators'][i].emit('viewer', board);
+			console.log("Transmit to spectator")
+		}
+
+
 		//Check for the game progress
 		if (progress == 1) {
 			createScore(roundID, sender);
 		}else if (progress == 2) {
 			createScore(roundID, null);
-		}
-
-
-		//Forward the game to the spectator
-		for (i in games[roundID]['spectators']){
-			games[roundID]['spectators'][i].emit('viewer', board);
-			console.log("Transmit to spectator")
 		}
 
 	})
@@ -185,6 +185,8 @@ io.on('connection', (socket) => {
 					//find who disconnected
 					if (players[i]['socket'] === socket) {
 
+						console.log("Player with token: "+players[i]['token'] +" left." )
+
 						//announce as winner the other player
 						if (players[invert(i)] != undefined) {
 							players[invert(i)]['socket'].emit('endgame', null);
@@ -209,6 +211,9 @@ io.on('connection', (socket) => {
 //Easy way to go from 0 to 1 and otherwise
 function invert(a){
 	return (a + 1) % 2
+
+
+	// TODO: Extend broadcast to more that 2 players game
 }
 
 function createScore(roundID, winner){

@@ -133,7 +133,10 @@ export function setListeners(obj){
 
 
   //Receive the updated board
-  obj.state.socket.on('board', board => {
+  obj.state.socket.on('board', message => {
+      var board = message['board'];
+      var progress = message['progress'];
+      
       obj.setState({
         squares: board,
         myTurn: true,
