@@ -1,4 +1,5 @@
 from utils import kafkaDrivers as kafka
+from utils import mongoDrivers as mongo
 from utils import log_settings
 import logging as log
 import uuid 
@@ -11,18 +12,8 @@ consumer.subscribe(['input'])
 
 producer = kafka.createProducer()
 
-try:
-    # try to instantiate a client instance
-    myclient = pymongo.MongoClient(
-        host = [ 'mongodb:27017' ],
-        serverSelectionTimeoutMS = 3000, # 3 second timeout
-        username = "root",
-        password = "rootpassword",
-    )
-    log.info("db connection established")
-except:
-	log.exception("db connection")
 
+myclient = mongo.createClient()
 mydb = myclient["games"]
 pr = mydb["inprogress"]
 
@@ -113,7 +104,7 @@ plays = initPlays()
 
 
 while True:
-	handlePairs(consumer, producer)
+	readRecords(consumer, producer)
 	
 
 

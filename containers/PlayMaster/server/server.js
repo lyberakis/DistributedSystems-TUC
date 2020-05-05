@@ -5,6 +5,7 @@ var hostname = os.hostname();
 var zookeeper = require('node-zookeeper-client');
  
 var client = zookeeper.createClient('zookeeper:2181');
+
 var path = '/games/playmaster/'+hostname;
 var mystate = {
 	'cmd_port' : myArgs[0],
