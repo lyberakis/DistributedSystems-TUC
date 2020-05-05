@@ -9,6 +9,8 @@ services:
       - "80:80"
     networks:
       - games_net
+    depends_on:
+      - kafka
   gamemaster:
     build: ./containers/GameMaster
     image: gamemaster
