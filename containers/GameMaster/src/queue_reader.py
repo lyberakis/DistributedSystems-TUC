@@ -48,7 +48,7 @@ def assignPlay(pair):
 	
 	return r.status_code
 
-def practice(game):
+def practice(record):
 	game = record['game']
 	plays[game]['queue'].append(record['token'])
 

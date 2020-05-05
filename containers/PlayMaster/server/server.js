@@ -4,7 +4,7 @@ var hostname = os.hostname();
 
 var zookeeper = require('node-zookeeper-client');
  
-var client = zookeeper.createClient('zookeeper:2181');
+var zoo = zookeeper.createClient('zookeeper:2181');
 
 var path = '/games/playmaster/'+hostname;
 var mystate = {
@@ -15,24 +15,24 @@ var mystate = {
 
 console.log(mystate)
 
-client.once('connected', function () {
+zoo.once('connected', function () {
     console.log('Connected to the server.');
  
-    client.create(
-	    path,
+	zoo.create(
+		path,
 	    Buffer.from(JSON.stringify(mystate)),
 	    zookeeper.CreateMode.EPHEMERAL, 
-    	function (error) {
+		function (error) {
 	        if (error) {
 	            console.log('Failed to create node: %s due to: %s.', path, error);
 	        } else {
 	            console.log('Node: %s is successfully created.', path);
 	        }
- 
-    });
+
+	});
 });
  
-client.connect();
+zoo.connect();
 
 const io = require('socket.io')()
 // const MongoClient = require('mongodb').MongoClient;
@@ -50,27 +50,21 @@ var pending = {}
 // go to http://localhost:3000/?pm=1337&gm=9000&token=1
 // go to http://localhost:3000/?pm=1337&gm=9000&token=2
 
-// var kafka = require('kafka-node');
-// var HighLevelProducer = kafka.HighLevelProducer;
-// var Producer = kafka.Producer;
-// var KeyedMessage = kafka.KeyedMessage;
-// var client = new kafka.KafkaClient({kafkaHost: 'kafka:9092'});
-// var producer = new HighLevelProducer(client);
-// var km = new KeyedMessage('key', 'message');
-// var kafka_topic = 'scores';
+var kafka = require('kafka-node');
+var HighLevelProducer = kafka.HighLevelProducer;
+var Producer = kafka.Producer;
+var KeyedMessage = kafka.KeyedMessage;
+var client = new kafka.KafkaClient({kafkaHost: 'kafka:9092'});
+var producer = new HighLevelProducer(client);
+var km = new KeyedMessage('key', 'message');
+var kafka_topic = 'scores';
 
-// producer.on('error', function(err) {
-// 	console.log(err);
-// 	console.log('[kafka-producer -> '+kafka_topic+']: connection errored');
-// });
+producer.on('error', function(err) {
+	console.log(err);
+	console.log('[kafka-producer -> '+kafka_topic+']: connection errored');
+});
 
-// producer.on('ready', function () {
-//     producer.send(payloads, function (err, data) {
-//         console.log(data);
-//     });
-// });
- 
-// producer.on('error', function (err) {})
+producer.on('error', function (err) {})
 
 io.on('connection', (socket) => {
   
@@ -247,22 +241,22 @@ function createScore(roundID, winner){
 	console.log(score)
 
 
-	//Send the score to GameMaster via Kafka
-	// let payloads = [
-	//     {
-	//       topic: kafka_topic,
-	//       messages: JSON.stringify(score)
-	//     }
-	// ];
+	// Send the score to GameMaster via Kafka
+	let payloads = [
+	    {
+	      topic: kafka_topic,
+	      messages: JSON.stringify(score)
+	    }
+	];
 
 	
-	// let push_status = producer.send(payloads, (err, data) => {
-	// 	if (err) {
-	// 		console.log('[kafka-producer -> '+kafka_topic+']: broker update failed');
-	// 	} else {
-	// 		console.log('[kafka-producer -> '+kafka_topic+']: broker update success');
-	// 	}
-	// });
+	let push_status = producer.send(payloads, (err, data) => {
+		if (err) {
+			console.log('[kafka-producer -> '+kafka_topic+']: broker update failed');
+		} else {
+			console.log('[kafka-producer -> '+kafka_topic+']: broker update success');
+		}
+	});
 
 }
 
@@ -303,21 +297,21 @@ app.post('/', function(request, response){
   	spectators[players[0]] = roundID;
   }
 	
-	mystate = {
-		'cmd_port' : myArgs[0],
-		'game_port' : myArgs[1],
-		'games' : 1,
-	};
+	// mystate = {
+	// 	'cmd_port' : myArgs[0],
+	// 	'game_port' : myArgs[1],
+	// 	'games' : 1,
+	// };
 
 
-	client.setData(path, Buffer.from(JSON.stringify(mystate)), 1, function (error, stat) {
-	    if (error) {
-	        console.log(error.stack);
-	        return;
-	    }
+	// zoo.setData(path, Buffer.from(JSON.stringify(mystate)), 1, function (error, stat) {
+	//     if (error) {
+	//         console.log(error.stack);
+	//         return;
+	//     }
 	 
-	    console.log('Data is set.');
-	});
+	//     console.log('Data is set.');
+	// });
 
   
   

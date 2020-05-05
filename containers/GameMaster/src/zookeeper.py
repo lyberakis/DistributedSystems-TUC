@@ -1,7 +1,7 @@
 from kazoo.client import KazooClient
 import time
 
-zk = KazooClient(hosts='localhost:2181')
+zk = KazooClient(hosts='zookeeper:2181')
 zk.start()
 
 from kazoo.client import KazooState

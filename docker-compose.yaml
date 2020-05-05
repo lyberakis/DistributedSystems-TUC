@@ -34,6 +34,7 @@ services:
       - 1337:1337
       - 8080:8080
     depends_on:
+      - gamemaster
       - kafka
   generator:
     build: ./containers/generator
@@ -44,6 +45,7 @@ services:
       - ./containers/generator/logs:/etc/logs
     depends_on:
       - kafka
+      - playmaster
   zookeeper:
     image: zookeeper:3.6.0
     ports:

@@ -6,11 +6,9 @@ RUN pip install flask
 RUN pip install flask_cors
 RUN pip install flask_restful
 RUN pip install requests
+RUN pip install kazoo
 
 
 COPY src .
 ENTRYPOINT ["python", "main.py"]
-# ENTRYPOINT ["python", "db_update.py"]
-# ENTRYPOINT ["python", "client_listener.py"]
-# ENTRYPOINT ["python", "score_reader.py"]
 EXPOSE 9000
