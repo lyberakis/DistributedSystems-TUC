@@ -39,7 +39,6 @@ def watch_children(children):
 
 		
 # Above function called immediately, and from then on
-
 # @zk.DataWatch("/my/favorite")
 # def watch_node(data, stat):
 #     print("Version: %s, data: %s" % (stat.version, data.decode("utf-8")))
@@ -49,8 +48,10 @@ def assign():
 		pos = 0
 
 	seletected = playmasters[pos]
+	data, stat = zk.get("/games/playmaster/"+seletected)
+	# log.info(f'Version {stat.version} data: {data.decode("utf-8")}')
 
-	return pos;
+	return data['cmd_port'], data['game_port']
 
 while True:
 	time.sleep(1)
