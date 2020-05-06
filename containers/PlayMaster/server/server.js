@@ -1,47 +1,19 @@
-var myArgs = process.argv.slice(2);
-var os = require("os");
-var hostname = os.hostname();
-
-var zookeeper = require('node-zookeeper-client');
- 
-var zoo = zookeeper.createClient('zookeeper:2181');
-
-var path = '/games/playmaster/'+hostname;
-var mystate = {
-	'cmd_port' : myArgs[0],
-	'game_port' : myArgs[1],
-	'games' : 0,
-	};
-
-console.log(mystate)
-
-zoo.once('connected', function () {
-    console.log('Connected to the server.');
- 
-	zoo.create(
-		path,
-	    Buffer.from(JSON.stringify(mystate)),
-	    zookeeper.CreateMode.EPHEMERAL, 
-		function (error) {
-	        if (error) {
-	            console.log('Failed to create node: %s due to: %s.', path, error);
-	        } else {
-	            console.log('Node: %s is successfully created.', path);
-	        }
-
-	});
-});
- 
-zoo.connect();
-
+const myArgs = process.argv.slice(2);
+const zookeeper = require("./zookeeper.js");
+const kafka = require("./kafka.js");
 const io = require('socket.io')()
-// const MongoClient = require('mongodb').MongoClient;
+
+const port_gm = myArgs[0];
+const port_client = myArgs[1];
 
 
+zookeeper.clientInit(port_gm, port_client);
+kafka.clientInit();
 
 var games = {}   //find quickly the receiver
 var spectators = {}
 var pending = {}
+var gameCounter = 0
 
 //How to TEST
 // node server.js 8080 1337
@@ -50,22 +22,7 @@ var pending = {}
 // go to http://localhost:3000/?pm=1337&gm=9000&token=1
 // go to http://localhost:3000/?pm=1337&gm=9000&token=2
 
-var kafka = require('kafka-node');
-var HighLevelProducer = kafka.HighLevelProducer;
-var Producer = kafka.Producer;
-var KeyedMessage = kafka.KeyedMessage;
-var client = new kafka.KafkaClient({kafkaHost: 'kafka:9092'});
-var producer = new HighLevelProducer(client);
-var km = new KeyedMessage('key', 'message');
-var kafka_topic = 'scores';
-
-producer.on('error', function(err) {
-	console.log(err);
-	console.log('[kafka-producer -> '+kafka_topic+']: connection errored');
-});
-
-producer.on('error', function (err) {})
-
+// Set event handlers for websockets
 io.on('connection', (socket) => {
   
 	var token = socket.request._query['token'];
@@ -90,9 +47,6 @@ io.on('connection', (socket) => {
 				'token': token,
 				'socket': socket
 			})
-
-			//Save to db 
-			// gameCommit(games[roundID]);
 
 			console.log('second Player with token '+token)
 
@@ -131,8 +85,8 @@ io.on('connection', (socket) => {
 		  socket.emit('wait', {'roundID' : roundID})
 		}
 	}else if (token in spectators){
-
 		console.log('Spectator connected with token '+token)
+
 		let roundID = spectators[token];
 		games[roundID]['spectators'].push(socket);
 		delete spectators[token];
@@ -165,7 +119,6 @@ io.on('connection', (socket) => {
 			console.log("Transmit to spectator")
 		}
 
-
 		//Check for the game progress
 		if (progress == 1) {
 			createScore(roundID, sender);
@@ -176,7 +129,6 @@ io.on('connection', (socket) => {
 	})
 
 	socket.on('disconnect', function (message) {
-
 		var found = false;
 
 		//Check every game
@@ -217,7 +169,6 @@ io.on('connection', (socket) => {
 function invert(a){
 	return (a + 1) % 2
 
-
 	// TODO: Extend broadcast to more that 2 players game
 }
 
@@ -242,38 +193,26 @@ function createScore(roundID, winner){
 
 
 	// Send the score to GameMaster via Kafka
-	let payloads = [
-	    {
-	      topic: kafka_topic,
-	      messages: JSON.stringify(score)
-	    }
-	];
+	kafka.send(score);
 
+	gameCounter-=1;
 	
-	let push_status = producer.send(payloads, (err, data) => {
-		if (err) {
-			console.log('[kafka-producer -> '+kafka_topic+']: broker update failed');
-		} else {
-			console.log('[kafka-producer -> '+kafka_topic+']: broker update success');
-		}
-	});
-
+	// update the state to zookeeper
+  	zookeeper.updateState(gameCounter);
 }
 
-
-const port_client = myArgs[1]
 io.listen(port_client)
+
 console.log('Listening on port for clients ' + port_client + '...')
 
-
+// ======================================================================
 
 // Listen for Game Master commands
 const express = require('express')
 const bodyParser = require('body-parser');
-const uniqid = require('uniqid');
+// const uniqid = require('uniqid');
 
 const app = express();
-
 
 app.use(bodyParser.json());
 
@@ -293,83 +232,22 @@ app.post('/', function(request, response){
 	'game' : game
 	};
 	pending[p2] = pending[p1];
+
+	gameCounter+=1;
+
+	// update the state to zookeeper
+  	zookeeper.updateState(gameCounter);
   }else{
   	spectators[players[0]] = roundID;
   }
-	
-	// mystate = {
-	// 	'cmd_port' : myArgs[0],
-	// 	'game_port' : myArgs[1],
-	// 	'games' : 1,
-	// };
 
-
-	// zoo.setData(path, Buffer.from(JSON.stringify(mystate)), 1, function (error, stat) {
-	//     if (error) {
-	//         console.log(error.stack);
-	//         return;
-	//     }
-	 
-	//     console.log('Data is set.');
-	// });
-
-  
-  
+ 
   response.writeHead(200);
   response.end();
 
 });
 
-const port_gm = myArgs[0];
+
 app.listen(port_gm);
-
 console.log('Listening on port for GM ' + port_gm + '...')
-
-
-// const url = "mongodb://root:rootpassword@mongodb:27017/";
-// var mongo_conn = null;
-// var dbo = null;
-// MongoClient.connect(url,function(err, db){  
-//   if(err) 
-//     console.log(err);
-//   else
-//   {
-//     console.log('Mongo Conn....');
-
-//   }
-// });
-// MongoClient.connect(url, function(err, db) {
-//   if (err) throw err;
-//   dbo = db.db("play_repo");
-//   console.log("Connected to mongodb!");
-//   mongo_conn = db;
-//   dbo.createCollection(PMID, function(err, res) {
-//   if (err) throw err;
-//     console.log("Collection created!");
-//   });
-// });
-
-//function gameCommit(game) {
-  // let players = game['players']
-  // let data = {
-  //   type: game['type'],
-  //   players: [players[0]['token'], players[1]['token']]
-  //}
-
-  // dbo.collection(PMID).insertOne(data, function(err, res) {
-  //   if (err) throw err;
-  // });
-//}
-
-//function gameFree(roundID) {
-  // let myquery = {roundID: roundID };
-
-  // dbo.collection(PMID).deleteOne(myquery, function(err, obj) {
-  //   if (err) throw err;
-  // });
-//}
-
-
-
-
 
