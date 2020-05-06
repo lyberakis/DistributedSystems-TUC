@@ -28,7 +28,9 @@ require_once 'config.php';
                 <h1>Games List</h1>
     
                 <div class="item">
-                    <img src="img/chess_icon.png">
+                    <a href="game.php">
+                        <img src="img/chess_icon.png">
+                    </a>
                 </div>
 
                 <div class="item">
