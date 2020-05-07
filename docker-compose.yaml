@@ -6,7 +6,7 @@ services:
     volumes:
       - ./containers/Website/public_html:/var/www/html/
     ports:
-      - "80:80"
+      - "8089:80"
     networks:
       - games_net
     depends_on:

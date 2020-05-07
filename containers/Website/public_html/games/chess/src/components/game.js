@@ -5,8 +5,10 @@ import Board from './board.js';
 import FallenSoldierBlock from './fallen-soldier-block.js';
 import initialiseChessBoard from '../helpers/board-initialiser.js';
 import Bishop from '../pieces/bishop.js';
+import King from '../pieces/king.js';
 import Knight from '../pieces/knight.js';
 import Queen from '../pieces/queen.js';
+import Pawn from '../pieces/pawn.js';
 import Rook from '../pieces/rook.js';
 import * as conn from './multiplayer.js'; 
 
@@ -728,46 +730,39 @@ export default class Game extends React.Component {
    var textSquares = [];
     for (let i=0; i<squares.length; i++){
       if (squares[i]){
-        switch(squares[i].constructor.name){
-          case "King":
+        console.log(squares[i] instanceof Bishop)
+        console.log(i)
+          if (squares[i] instanceof King){
             if (squares[i].player===1)
               textSquares.push("King 1");
             else
               textSquares.push("King 2");
-            break;
-          case "Pawn":
+          }else if (squares[i] instanceof Pawn){
             if (squares[i].player===1)
               textSquares.push("Pawn 1");
             else
               textSquares.push("Pawn 2");
-            break;
-          case "Queen":
+          }else if (squares[i] instanceof Queen){
             if (squares[i].player===1)
               textSquares.push("Queen 1");
             else
               textSquares.push("Queen 2");
-            break;
-          case "Bishop":
+          }else if (squares[i] instanceof Bishop){
             if (squares[i].player===1)
               textSquares.push("Bishop 1");
             else
               textSquares.push("Bishop 2");
-            break;
-          case "Knight":
+          }else if (squares[i] instanceof Knight){
             if (squares[i].player===1)
               textSquares.push("Knight 1");
             else
               textSquares.push("Knight 2");
-            break;
-          case "Rook":
+          }else if (squares[i] instanceof Rook){
             if (squares[i].player===1)
               textSquares.push("Rook 1");
             else
               textSquares.push("Rook 2");
-            break;
-          default:
-            break;
-        }
+          }
       }else{
         textSquares.push(0);
       }
@@ -776,6 +771,63 @@ export default class Game extends React.Component {
     console.log(textSquares);
     return textSquares;
   }
+
+  // classesToStrings(squares){
+  //   console.log("squares")
+  //   console.log(squares)
+  //  var textSquares = [];
+  //   for (let i=0; i<squares.length; i++){
+  //     if (squares[i]){
+  //       console.log(squares[i] instanceof Bishop)
+  //       console.log(i)
+  //       switch(squares[i].constructor.name){
+  //         case "King":
+  //           if (squares[i].player===1)
+  //             textSquares.push("King 1");
+  //           else
+  //             textSquares.push("King 2");
+  //           break;
+  //         case "Pawn":
+  //           if (squares[i].player===1)
+  //             textSquares.push("Pawn 1");
+  //           else
+  //             textSquares.push("Pawn 2");
+  //           break;
+  //         case "Queen":
+  //           if (squares[i].player===1)
+  //             textSquares.push("Queen 1");
+  //           else
+  //             textSquares.push("Queen 2");
+  //           break;
+  //         case "Bishop":
+  //           if (squares[i].player===1)
+  //             textSquares.push("Bishop 1");
+  //           else
+  //             textSquares.push("Bishop 2");
+  //           break;
+  //         case "Knight":
+  //           if (squares[i].player===1)
+  //             textSquares.push("Knight 1");
+  //           else
+  //             textSquares.push("Knight 2");
+  //           break;
+  //         case "Rook":
+  //           if (squares[i].player===1)
+  //             textSquares.push("Rook 1");
+  //           else
+  //             textSquares.push("Rook 2");
+  //           break;
+  //         default:
+  //           break;
+  //       }
+  //     }else{
+  //       textSquares.push(0);
+  //     }
+  //   }
+  //   console.log("textSquares");
+  //   console.log(textSquares);
+  //   return textSquares;
+  // }
 
   setBishop(){
     let newSquares = this.state.squares;
