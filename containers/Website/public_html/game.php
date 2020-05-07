@@ -1,9 +1,9 @@
 <?php
 // Initialize the session
-// if (!isset($_SESSION)) {
-//     session_start();
-// }
- 
+if (!isset($_SESSION)) {
+    session_start();
+}
+
 // Check if the user is logged in, if not then redirect him to login page
 // if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 //     header("location: index.php");
@@ -11,9 +11,9 @@
 // }
 
 require_once 'config.php';
-
-$loading = true;
-$content =' ';
+$game = 'react-chess';
+$content = '<div id="game_frame">
+<iframe src="games/'.$_SESSION["game"].'/build/index.html?token='.$_SESSION["token"].'&gm='.$_SESSION["gm"].'&pm='.$_SESSION["pm"].'" width="100%" ></iframe> </div>';
 // while ($loading == true) {
 //     sleep(1);
 // }
@@ -44,18 +44,9 @@ $content =' ';
     <body>
         <?php include 'menu.php'; ?>
         <div id="content" class="bg">
-            Loading...
+            <?php echo $content; ?>
         </div>
         <?php include 'footer.php'; ?> 
     </body>
-    <script type="text/javascript">
-        $.ajax({
-          url: 'load.php',
-          success: function(data) {
-              $('#content').html('<iframe src="tic-tac-toe/build/index.html?token=1&gm=3000&pm=1337" width="100%" ></iframe>');
-            }
-    });
-</script>
-
 </html>
 

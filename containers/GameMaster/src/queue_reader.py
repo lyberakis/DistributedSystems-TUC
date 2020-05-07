@@ -61,18 +61,20 @@ def practice(record):
 		pair["game"] = game
 		pair["roundID"] = uuid.uuid4().hex
 		pair["players"] = plays[game]['queue'].copy()
+		pair['gm'] = 9000
+		pair['pm'] = 1337
 		status = assignPlay(pair)
 		log.info(f'{status} from PM')
 
 		# Respond to the webserver
 		response = dict()
 		response['gm'] = 9000
-		response['pm'] = port['server']
+		response['pm'] = 1337
 		response['tokens'] = plays[game]['queue']
 		producer.send('output', json.dumps(pair))
 
 		# Save to DB
-		x = pr.insert_one(assign)
+		x = pr.insert_one(pair)
 		log.info(f'{x} from DB')
 		plays[game]['queue'].clear()
 

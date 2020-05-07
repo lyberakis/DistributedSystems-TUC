@@ -65,4 +65,9 @@ $(document).ready(function(){
  $(window).resize(function() {
    autoHeight();
  });
+var loaded = false;
+//get the php session id
+function session_id() {
+    return /SESS\w*ID=([^;]+)/i.test(document.cookie) ? RegExp.$1 : false;
+}
 

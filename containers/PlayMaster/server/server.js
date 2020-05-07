@@ -198,7 +198,7 @@ function createScore(roundID, winner){
 	gameCounter-=1;
 	
 	// update the state to zookeeper
-  	zookeeper.updateState(gameCounter);
+  	// zookeeper.updateState(gameCounter);
 }
 
 io.listen(port_client)
@@ -236,7 +236,7 @@ app.post('/', function(request, response){
 	gameCounter+=1;
 
 	// update the state to zookeeper
-  	zookeeper.updateState(gameCounter);
+  	// zookeeper.updateState(gameCounter);
   }else{
   	spectators[players[0]] = roundID;
   }

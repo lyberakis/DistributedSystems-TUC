@@ -13,9 +13,8 @@ $producer = new \Kafka\Producer(
     function() {
         return [
             [
-                'topic' => 'test',
-                'value' => 'test....message.',
-                'key' => 'testkey',
+                'topic' => 'input',
+                'value' => '{"token": "3", "game":"chess" , "tournament" : None}'
             ],
         ];
     }

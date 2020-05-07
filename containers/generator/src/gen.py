@@ -19,7 +19,7 @@ class Producer(object):
 		time.sleep(10)
 		producer.send('input', {"token": "1", "game":"chess", "tournament" : 1232342})
 		time.sleep(5)
-		producer.send('input', {"token": "2", "game":"tic-tac-toe" , "tournament" : 46878})
+		producer.send('input', {"token": "2", "game":"tic-tac-toe" , "tournament" : None})
 		time.sleep(5)
 		producer.send('input', {"token": "3", "game":"chess" , "tournament" : None})
 		time.sleep(5)

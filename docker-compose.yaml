@@ -36,16 +36,16 @@ services:
     depends_on:
       - gamemaster
       - kafka
-  generator:
-    build: ./containers/generator
-    image: generator
-    networks:
-      - games_net
-    volumes:
-      - ./containers/generator/logs:/etc/logs
-    depends_on:
-      - kafka
-      - playmaster
+  # generator:
+  #   build: ./containers/generator
+  #   image: generator
+  #   networks:
+  #     - games_net
+  #   volumes:
+  #     - ./containers/generator/logs:/etc/logs
+  #   depends_on:
+  #     - kafka
+  #     - playmaster
   zookeeper:
     image: zookeeper:3.6.0
     ports:
