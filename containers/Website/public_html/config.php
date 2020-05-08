@@ -1,6 +1,7 @@
 <?php
 /* Set REST API variables */
 $auth_service = "auth:8095";
+$gamemaster = "gamemaster:5002";
 
 
 /*Set timezone */

@@ -71,3 +71,17 @@ function session_id() {
     return /SESS\w*ID=([^;]+)/i.test(document.cookie) ? RegExp.$1 : false;
 }
 
+// Same height for column sections
+function setEqualHeight(columns) {
+  var tallestColumn = 0;
+
+  columns.each(function(){
+    var currentHeight = $(this).height();
+
+    if(currentHeight > tallestColumn){
+      tallestColumn  = currentHeight;
+    }
+  });
+
+  columns.height(tallestColumn);
+}

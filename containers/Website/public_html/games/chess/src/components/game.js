@@ -730,8 +730,6 @@ export default class Game extends React.Component {
    var textSquares = [];
     for (let i=0; i<squares.length; i++){
       if (squares[i]){
-        console.log(squares[i] instanceof Bishop)
-        console.log(i)
           if (squares[i] instanceof King){
             if (squares[i].player===1)
               textSquares.push("King 1");

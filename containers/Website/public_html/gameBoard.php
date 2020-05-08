@@ -14,21 +14,6 @@ require_once 'config.php';
 $game = 'react-chess';
 $content = '<div id="game_frame">
 <iframe src="games/'.$_SESSION["game"].'/build/index.html?token='.$_SESSION["token"].'&gm='.$_SESSION["gm"].'&pm='.$_SESSION["pm"].'" width="100%" ></iframe> </div>';
-// while ($loading == true) {
-//     sleep(1);
-// }
-
-// if ($loading != true) {
-//     $content ='<iframe src="tic-tac-toe/build/index.html?token=1&gm=3000&pm=1337" width="100%" ></iframe>';
-// }else{
-//     $content =' ';
-// }
-
-// do{
-//     $content =' ';
-// }while ($loading);
-
-// $content ='<iframe src="tic-tac-toe/build/index.html?token=1&gm=3000&pm=1337" width="100%" ></iframe>';
 
  ?>
 

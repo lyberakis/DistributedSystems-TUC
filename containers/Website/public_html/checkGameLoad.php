@@ -5,7 +5,7 @@ $limit = 0;
 
 do{
 	sleep(2);
-	if ($limit >= 120) {
+	if ($limit >= 120*60) {
 		
 		return false;
 	}

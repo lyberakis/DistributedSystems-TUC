@@ -10,6 +10,7 @@ body {
   min-height: 100%;
   margin:0px;
   padding: 0px;
+  color:white;
 }
 
 body {
@@ -174,12 +175,34 @@ button {
   /*margin: 8px 0;*/
   border: none;
   cursor: pointer;
-  width: 100%;
+  width: 80%;
 }
+
 
 button:hover {
   opacity: 0.8;
 }
+
+.btn-new {
+  background-color: #008CBA;
+  color: white;
+  border: 2px solid #008CBA;
+  padding: 16px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 2px;
+  transition-duration: 0.4s;
+  cursor: pointer;
+}
+
+.btn-new:hover {
+  background-color: white; 
+  color: black; 
+}
+
+
 
 /* Extra styles for the cancel button */
 .cancelbtn {
@@ -203,7 +226,13 @@ img.avatar {
 .container {
   margin: 0px 20px;
   padding: 16px;
+  text-align: center;
 }
+
+.container  button{
+  width: 100%;
+}
+
 
 span.psw {
   float: right;
@@ -304,7 +333,6 @@ span.psw {
   color: white;
 }
 
-
 .games .item{
   display: inline-block;
   margin: 10px;
@@ -327,6 +355,65 @@ span.psw {
   box-shadow: 0 4px 8px 0 rgb(255, 1, 1), 0 6px 20px 0 rgb(72, 10, 10);
   cursor: pointer;
 }
+
+
+/*Game Options page*/
+
+/* Create two equal columns that floats next to each other */
+.column {
+  float: left;
+  width: 50%;
+  padding: 10px;
+  min-height: : 300px; /* Should be removed. Only for demonstration */
+}
+
+/* Clear floats after the columns */
+.row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+
+.gameOptions{
+/*  margin: 20px;*/
+}
+
+.gameOptions .section{
+  padding: 20px;
+  margin: auto;
+  background: rgba(17, 46, 57, 0.44);
+  text-align: center;
+  width: 80%;
+}
+
+.gameOptions button{
+  margin: 10px;
+  width: 400px;
+}
+
+
+
+.gameOptions h2{
+  padding-top: 20px;
+  font-size: 30px;
+  text-align: center;
+  font-weight: 1000;
+  opacity: 0.8;
+  text-transform: uppercase;
+  color: white;
+}
+
+.gameOptions h3{
+  padding-top: 20px;
+  font-size: 18px;
+  text-align: center;
+  font-weight: 1000;
+  opacity: 0.8;
+  text-transform: uppercase;
+  color: white;
+}
+
 
 /*GAME page*/
 iframe {

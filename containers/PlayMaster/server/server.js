@@ -219,11 +219,11 @@ app.use(bodyParser.json());
 app.post('/', function(request, response){
   // let id = uniqid();
   var roundID = request.body['roundID'];
-  var type = request.body['type'];
+  var spectatorMode = request.body['spectator'];
   var game = request.body['game'];
   var players = request.body['players'];
 
-  if (type == 'active') {
+  if (!spectatorMode) {
   	console.log("Received active game")
 	let p1 = players[0];
 	let p2 = players[1];
