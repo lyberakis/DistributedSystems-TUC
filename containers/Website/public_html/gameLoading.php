@@ -32,6 +32,14 @@ if (isset($_GET['game'])) {
         );
     }
 
+    if ($_GET['tournament'] != 'null') {
+        $_SESSION['tournament'] = true;
+        $_SESSION['totalRounds'] = log($_GET['rounds']);
+        $_SESSION['curRound'] = 1;
+    }else{
+        $_SESSION['tournament'] = false;
+    }
+
     $producer = new \Kafka\Producer(
         function() {
             return [
@@ -51,6 +59,10 @@ if (isset($_GET['game'])) {
     });
     $producer->send(true);
 
+}else if(isset($_GET['redirect'])){
+    if (!$_GET['replay']) {
+        $_SESSION['curRound'] += 1;
+    }
 }else{
     header("location: portal.php");
 }

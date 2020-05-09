@@ -65,11 +65,13 @@ $(document).ready(function(){
  $(window).resize(function() {
    autoHeight();
  });
-var loaded = false;
+
+
 //get the php session id
 function session_id() {
-    return /SESS\w*ID=([^;]+)/i.test(document.cookie) ? RegExp.$1 : false;
+  return /SESS\w*ID=([^;]+)/i.test(document.cookie) ? RegExp.$1 : false;
 }
+
 
 // Same height for column sections
 function setEqualHeight(columns) {
@@ -84,4 +86,58 @@ function setEqualHeight(columns) {
   });
 
   columns.height(tallestColumn);
+}
+
+
+function timer(ms) {
+ return new Promise(res => setTimeout(res, ms));
+}
+
+function redirectDelay(url){
+  window.setTimeout(function(url){
+      // Move to a new location or you can do something else
+      window.location.href = url;
+
+  }, 3000);
+}
+
+
+function onMyFrameLoad() {
+    elementHandler();
+};
+
+function elementHandler () {
+    var iframe = document.getElementById("gameFrame");
+    var container = iframe.contentWindow.document.getElementById("endstate");
+    if (container.addEventListener) {
+      container.addEventListener ('DOMSubtreeModified', checkState, false);
+    }
+}
+async function redirect(url) {
+    await timer(5000);
+    window.location.href = url;
+}
+
+
+
+function checkState () {
+    var total = $('#totalRounds').innerText;
+    var current = $('#curRound').innerText;
+    var url = "portal.php";
+    var endgame = $("#endstate").innerText;
+    console.log(endgame);
+
+    if (total != '' && current != '') {
+        if (endgame == 'VICTORY') {
+            if (total < current){       //redirect for the next round
+                url = "gameLoadind.php?redirect=true&replay=false";
+            }
+        }else if(endgame == 'TIE') {
+            url = "gameLoadind.php?redirect=true&replay=true"; //redirect but not increase round
+        }          
+       
+    }
+    console.log(url);
+    redirect(url);
+
 }
