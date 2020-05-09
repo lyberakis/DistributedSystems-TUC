@@ -17,6 +17,11 @@ myclient = mongo.createClient()
 mydb = myclient["games"]
 pr = mydb["inprogress"]
 
+mydb2 = myclient["tournaments"]
+pen = mydb2["pending"]
+pl = mydb2["players"]
+inp = mydb2["inprogress"]
+
 def initPlays():
 	plays = {};
 	plays['chess'] = {}
@@ -83,6 +88,60 @@ def tournament(record):
 	game = record['game']
 	tournament = record['tournament']
 
+	if record['token'] not in pl.find():
+		if tournament not in tournaments['id']:
+			i=0
+			while i<len(tournaments)
+				if not tournaments[i]:
+					tournaments[i]['id']=x['id']
+					tournaments[i]['pop']=x['pop']
+					tournaments[i]['queue']=list()
+					break
+				i+=1
+		else:
+			for x in tournaments:
+				if x['id']==tournament:
+					x['queue'].append(record['token'])
+					if len(x['queue']) == x['pop']:
+						i=0
+						while i<len(x['queue']):
+							pair = dict()
+							pair["type"] = "active"
+							pair["game"] = game
+							pair["roundID"] = uuid.uuid4().hex
+							pair["players"][0] = x['queue'][i].copy()
+							i+=1
+							pair["players"][1] = x['queue'][i].copy()
+							i+=1
+							pair['gm'] = 9000
+							pair['pm'] = 1337
+							status = assignPlay(pair)
+							log.info(f'{status} from PM')
+
+							response = dict()
+							response['gm'] = 9000
+							response['pm'] = 1337
+							response['tokens'] = pair["players"]
+							producer.send('output', json.dumps(pair))
+
+							players = np.append(pair["players"], tournament, axis=1)
+							x = pl.insert_one(players[0])
+							log.info(f'{x} from DB')
+							x = pl.insert_one(players[1])
+							log.info(f'{x} from DB')\
+
+						tournaments.pop(x)
+						for y in pen.find():
+							if y['id']==tournament:
+								new_y=np.append(y, {"round": 1}, axis=1)
+								inp.insert_one(new_y)
+								pen.delete_one(y)
+								break
+
+				break
+	else:
+		#new_round
+
 
 def readRecords(consumer, producer):
 	for message in consumer:
@@ -101,8 +160,9 @@ def readRecords(consumer, producer):
 			tournament(record)
 
 		
-
+tournaments = {}
 plays = initPlays()
+	
 
 
 while True:

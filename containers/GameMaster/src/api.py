@@ -4,6 +4,7 @@ from json import dumps
 from utils import mongoDrivers as mongo
 from utils import log_settings
 import logging as log
+import uuid 
 
 app = Flask(__name__)
 api = Api(app)
@@ -12,23 +13,45 @@ myclient = mongo.createClient()
 mydb = myclient["games"]
 pr = mydb["inprogress"]
 
+mydb2 = myclient["tournaments"]
+tr = mydb2["pending"]#game--id--pop--name
+pltr = mydb2["players"]#token--id
 
 class Tournament(Resource):
     # get pending tournaments
     def get(self):
-        request.get_json(force=True)
-        args = parser.parse_args()
-        token = str(args['token'])
+        args = request.get_json(force=True)
         game = str(args['game'])
-        return jsonify(u=un, p=pw)
+        i=0
+        tournaments = {}
+        for x in tr.find():
+            if x['game']==game:
+                tournaments.append(x)
+
+        connected = {}
+        for z in tournaments:
+            connected[i]=0
+            for y in pltr.find():
+                if y['id']==z['id']:
+                    connected[i]=connected[i]+1
+            
+        tournaments=np.append(tournaments, connected, axis=1)
+
+        return tournaments#for each Tournament name--id--pop--connected
     
     # create a new tournament
     def post(self):
-        request.get_json(force=True)
-        args = parser.parse_args()
-        token = str(args['token'])
+        args = request.get_json(force=True)
+        tourName = str(args['name'])
+        players = str(args['players'])
         game = str(args['game'])
-        return jsonify(u=un, p=pw)
+        tournament = uuid.uuid4().hex
+        query = { "game": game, "id" : tournament, "pop": players, "name": tourName}
+        if tr.insert_one(query):
+            return 201
+        else
+            return 400
+        #return 201--400#jsonify(u=un, p=pw)
 
 # class Score(Resource):
 #     def get(self):
@@ -38,6 +61,7 @@ class Tournament(Resource):
 
 
 api.add_resource(Tournament, '/tournament') # Route_1
+api.add_resource(Player, '/player') # Route_1
 # api.add_resource(Tracks, '/tracks') # Route_2
 # api.add_resource(Employees_Name, '/employees/<employee_id>') # Route_3
 
