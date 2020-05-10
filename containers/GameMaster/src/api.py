@@ -28,7 +28,7 @@ class JSONEncoder(json.JSONEncoder):
 class Tournament(Resource):
     # get pending tournaments
     def get(self):
-        args = request.get_json(force=True)
+        args = request.args
         game = str(args['game'])
         i=0
         tournaments = []
@@ -55,14 +55,14 @@ class Tournament(Resource):
     def post(self):
         args = request.get_json(force=True)
         tourName = str(args['name'])
-        players = str(args['players'])
+        players = args['players']
         game = str(args['game'])
         tournament = uuid.uuid4().hex
         query = { "game": game, "id" : tournament, "pop": players, "name": tourName}
         if tr.insert_one(query):
-            return 200
+            return '', 201
         else:
-            return 400
+            return '', 400
         #return 201--400#jsonify(u=un, p=pw)
 
 # class Score(Resource):

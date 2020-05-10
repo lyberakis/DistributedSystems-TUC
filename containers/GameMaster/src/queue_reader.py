@@ -9,7 +9,7 @@ import pymongo
 
 consumer = kafka.createConsumer()
 consumer.subscribe(['input'])
-
+log.getLogger().setLevel(log.INFO)
 producer = kafka.createProducer()
 
 
@@ -18,9 +18,9 @@ mydb = myclient["games"]
 pr = mydb["inprogress"]
 
 mydb2 = myclient["tournaments"]
-pen = mydb2["pending"]
-pl = mydb2["players"]
-inp = mydb2["inprogress"]
+tr = mydb2["pending"]#game--id--pop--name
+pltr = mydb2["players"]#token--id
+inp = mydb2["inprogress"]#game--id--pop--name--round
 
 def initPlays():
 	plays = {};
@@ -87,12 +87,15 @@ def practice(record):
 def tournament(record):
 	game = record['game']
 	tournament = record['tournament']
-
+	logs.info('This is a test')
 	if record['token'] not in pl.find():
 		if tournament not in tournaments['id']:
 			i=0
-			while i<len(tournaments):
+			logs.info('we need to enter here')
+			while i<=len(tournaments):
+				logs.info('here')
 				if not tournaments[i]:
+					logs.info('and then here')
 					tournaments[i]['id']=x['id']
 					tournaments[i]['pop']=x['pop']
 					tournaments[i]['queue']=list()
@@ -124,16 +127,18 @@ def tournament(record):
 							response['tokens'] = pair["players"]
 							producer.send('output', json.dumps(pair))
 
-							players = np.append(pair["players"], tournament, axis=1)
-							x = pl.insert_one(players[0])
+							pair["players"][0]["id"]=tournament
+							pair["players"][1]["id"]=tournament
+							x = pl.insert_one(pair["players"][0])
 							log.info(f'{x} from DB')
-							x = pl.insert_one(players[1])
+							x = pl.insert_one(pair["players"][1])
 							log.info(f'{x} from DB')\
 
 						tournaments.pop(x)
 						for y in pen.find():
 							if y['id']==tournament:
-								new_y=np.append(y, {"round": 1}, axis=1)
+								new_y=y
+								new_y["round"]=1
 								inp.insert_one(new_y)
 								pen.delete_one(y)
 								break
@@ -153,7 +158,6 @@ def readRecords(consumer, producer):
 			log.warning(f'{game} is invalid game!')
 			continue
 
-		
 		if record['tournament'] is None:
 			practice(record)
 		else:
