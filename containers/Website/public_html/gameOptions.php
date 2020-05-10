@@ -21,7 +21,6 @@ if (isset($_GET['game'])) {
 
 $dest = 'gameLoading.php';
 $practice = $dest.'?tournament=null&spectator=false&game='.$game;
-
 ?>
 
 <!DOCTYPE html>
@@ -51,8 +50,9 @@ $practice = $dest.'?tournament=null&spectator=false&game='.$game;
                                     echo 'No available plays found.';
                                 }
                                 foreach ($response as $tourn){ 
-                                    $req = $dest.'?tournament=$tourn["id"]&spectator=false';
-                                    $text = $tourn['name'].'  [ '.$tourn['connected'].' / '.$tourn['connected'] . ' ]';
+                                    $req = $dest.'?tournament='.$tourn["id"].'&spectator=false&rounds='.$tourn['pop'];
+                                    $text = $tourn['name'].'  [ '.$tourn['connected'].' / '.$tourn['pop'] . ' ]';
+                                    // specify tournament variables
                                     echo '<button class="btn-new" onclick="'.$req.'">'.$text.'</button>';
 
                                 }

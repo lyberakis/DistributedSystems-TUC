@@ -11,9 +11,9 @@ if (!isset($_SESSION)) {
 // }
 
 require_once 'config.php';
-$game = 'react-chess';
+
 $content = '<div id="game_frame">
-<iframe src="games/'.$_SESSION["game"].'/build/index.html?token='.$_SESSION["token"].'&gm='.$_SESSION["gm"].'&pm='.$_SESSION["pm"].'" width="100%" ></iframe> </div>';
+<iframe onload="onMyFrameLoad(this)" id="gameFrame" src="games/'.$_SESSION["game"].'/build/index.html?token='.$_SESSION["token"].'&gm='.$_SESSION["gm"].'&pm='.$_SESSION["pm"].'" width="100%" ></iframe> </div>';
 
  ?>
 
@@ -29,7 +29,14 @@ $content = '<div id="game_frame">
     <body>
         <?php include 'menu.php'; ?>
         <div id="content" class="bg">
-            <?php echo $content; ?>
+            <?php
+                if ($_SESSION['tournament'] == true) {
+                    $cur = '<span id="curRound">'.$_SESSION['curRound'] .'</span>';
+                    $total = '<span id="totalRounds">'.$_SESSION['totalRounds'] .'</span>';
+                    echo $cur." / ".$total;
+                }
+                echo $content; 
+            ?>
         </div>
         <?php include 'footer.php'; ?> 
     </body>

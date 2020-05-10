@@ -6,7 +6,7 @@ if (!isset($_SESSION)) {
  
  // define variables and set to empty values
 $message = "";
-$id = $game = $number = "";
+$game = $name =  $number = "";
 
 
 // Check if the user is logged in, if not then redirect him to login page
@@ -22,77 +22,40 @@ require_once "functions.php";
 if($_SERVER["REQUEST_METHOD"] == "POST"){
  
     //Check data for special characters
-    $id = secure_input($_POST["id"]);
+    $number = secure_input($_POST["number"]);
+    $game = secure_input($_POST["game"]);
     $name = secure_input($_POST["name"]);
-    $surname = secure_input($_POST["surname"]);
-    $fathername = secure_input($_POST["fathername"]);
-    $grade = (real)$_POST["grade"];
-    $mobile_number = secure_input($_POST["mobile_number"]);
-    $birthday = secure_input($_POST["birthday"]);
 
-    
     //Input format validation
- 
-    // check if name only contains letters
-    if (!preg_match("/^[a-zA-Z]*$/",$name) or !preg_match("/^[a-zA-Z]*$/",$surname) or !preg_match("/^[a-zA-Z]*$/",$fathername)) {
-        $message = '<span style="color:red">Only letters are allowed to names!</span>';
+    if (!filter_var($number, FILTER_VALIDATE_INT) && ($number & ($number - 1)) == 0) {
+        $message = '<span style="color:red">Number of player must be a power of two!</span>';
     }
 
-    if (!filter_var($grade, FILTER_VALIDATE_FLOAT)) {
-        $message = '<span style="color:red">Only number are allowed to grade!</span>';
-    }
-
-    if (!filter_var($mobile_number, FILTER_VALIDATE_INT)) {
-        $message = '<span style="color:red">Invalid mobile number!</span>';
-    }
-
-    
     // Validate credentials
     if(empty($message)){
+        $tourn = new stdClass();
+        $tourn->game = $game ;
+        $tourn->name = $name ;
+        $tourn->players = $number ;
 
-        // Prepare a select statement
-        $sql = "INSERT INTO Students (ID, NAME, SURNAME, FATHERNAME, GRADE, MOBILENUMBER, Birthday)
-        VALUES (?,?,?,?,?,?,?)";
+        $data = json_encode($tourn);
+        $header = array("Content-Type:application/json");
+        $get_data = callAPI('POST', $gamemaster.'/tournament', $data, $header);
+        $response = json_decode($get_data, true);
 
-        /* create a prepared statement */
-        if($stmt = mysqli_prepare($link, $sql)){
 
-            // Bind variables to the prepared statement as parameters
-            mysqli_stmt_bind_param($stmt, "sssssss", $param_id, $param_name, $param_surname, $param_fathername, $param_grade, $param_mobile_number, $param_birthday);
-            
-            // Set parameters
-            $param_id = $id;
-            $param_name = $name;
-            $param_surname = $surname;
-            $param_fathername = $fathername;
-            $param_grade = $grade;
-            $param_mobile_number = $mobile_number;
-            $param_birthday = $birthday;
+        // Attempt to execute the prepared statement
+        if($httpcode == 201){
+            $message = '<span style="color:green">You added a student!</span>';
 
-            // Attempt to execute the prepared statement
-            if(mysqli_stmt_execute($stmt)){
-                $message = '<span style="color:green">You added a student!</span>';
-                
-                //Update the history records
-                $added_students = $_SESSION["array_record"];
-                $p = $_SESSION["array_pointer"];
-                $added_students[$p] = array($id, $name, $surname);
-                $p++;
-                $_SESSION["array_pointer"] = $p;
-                $_SESSION["array_record"] = $added_students;
-
-                //Erase fields for no resubmision
-                $id = $name = $surname = $fathername =  $grade = $mobile_number = $birthday = "";
-            }else{
-                $message = '<span style="color:red">Oops! Something went wrong. Please try again later.</span>';
-            }
+            //Erase fields for no resubmision
+            $id = $name = $surname = $fathername =  $grade = $mobile_number = $birthday = "";
+        }elseif ($httpcode == 401){
+            $message = '<span style="color:red">Unauthorized action!</span>';
+        }else{
+            $message = '<span style="color:red">Oops! Something went wrong. Please try again later.</span>';
         }
-        
-        // Close statement
-        mysqli_stmt_close($stmt);
     }
-    // Close connection
-    mysqli_close($link);
 }
 
 ?>
@@ -113,25 +76,25 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
             <p>Please fill in the form.</p>
             <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
                 <div class="row">
-                    <div class="col-md-3">    
-                        <label for="id">ID</label>
-                    </div>
-                    <div class="col-md-9">
-                        <input type="text" name="id" id="id" placeholder="1234" value="<?php echo $id; ?>" required>
-                    </div>
-
                     <div class="col-md-3">
                         <label for="name">Game</label>
                     </div>
                     <div class="col-md-9">
-                        <input type="text" name="name" id="name" placeholder="Kostas" value="<?php echo $game; ?>" required>
+                        <input type="text" name="game" id="game" placeholder="tic-tac-toe" value="<?php echo $game; ?>" required>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label for="name">Name</label>
+                    </div>
+                    <div class="col-md-9">
+                        <input type="text" name="name" id="name" placeholder="TIC 2020" value="<?php echo $name; ?>" required>
                     </div>
 
                     <div class="col-md-3">
                         <label for="surname">Number of players</label>
                     </div>
                     <div class="col-md-9">
-                        <input type="text" name="surname" id="surname" placeholder="Kostopoulos" value="<?php echo $number; ?>" required> 
+                        <input type="text" name="number" id="number" placeholder="4" value="<?php echo $number; ?>" required> 
                     </div>
 
                     <div class="form-group">

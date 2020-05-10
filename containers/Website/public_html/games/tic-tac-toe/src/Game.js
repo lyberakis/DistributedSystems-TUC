@@ -168,7 +168,7 @@ class Game extends React.Component {
 					 	<div>{turn}</div>
 					 </div>
 					 <div className="column right">
-					 	<div className="endstate">{endState}</div>
+					 	<div id="endstate">{endState}</div>
 					 </div>
 				</div>
 			</div>
