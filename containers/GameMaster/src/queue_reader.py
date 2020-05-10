@@ -91,7 +91,7 @@ def tournament(record):
 	if record['token'] not in pl.find():
 		if tournament not in tournaments['id']:
 			i=0
-			while i<len(tournaments)
+			while i<len(tournaments):
 				if not tournaments[i]:
 					tournaments[i]['id']=x['id']
 					tournaments[i]['pop']=x['pop']
@@ -139,7 +139,7 @@ def tournament(record):
 								break
 
 				break
-	else:
+	#else:
 		#new_round
 
 
