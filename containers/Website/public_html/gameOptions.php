@@ -42,18 +42,20 @@ $practice = $dest.'?tournament=null&spectator=false&game='.$game;
                          <!-- <button class="btn-new" onclick="alert('Hello world!')">Practice Play</button> -->
                          <?php
                             // Show all tournaments in the database
-                            $get_data = callAPI('GET', $gamemaster.'/tournament', false, false);
-                            $response = json_decode($get_data, true);
 
+                            $get_data = callAPI('GET', $gamemaster.'/tournament?game='.$game, false, $header);
+                            $response = json_decode($get_data, false);
+                            $response = json_decode($response, true) ;
+       
                             if ($httpcode == 200) {
                                 if (count($response) == 0) {
                                     echo 'No available plays found.';
                                 }
                                 foreach ($response as $tourn){ 
-                                    $req = $dest.'?tournament='.$tourn["id"].'&spectator=false&rounds='.$tourn['pop'];
+                                    $req = $dest.'?tournament='.strval($tourn["id"]).'&spectator=false&rounds='.$tourn['pop'].'&game='.$game;
                                     $text = $tourn['name'].'  [ '.$tourn['connected'].' / '.$tourn['pop'] . ' ]';
                                     // specify tournament variables
-                                    echo '<button class="btn-new" onclick="'.$req.'">'.$text.'</button>';
+                                    echo '<button class="btn-new" onclick="window.location='."'".$req."'".'">'.$text.'</button>';
 
                                 }
                             }else{
@@ -67,7 +69,7 @@ $practice = $dest.'?tournament=null&spectator=false&game='.$game;
                     <div class="section">
                         <?php
                             // Show all tournaments in the database
-                            $get_data = callAPI('GET', $gamemaster.'/games', false, false);
+                            $get_data = callAPI('GET', $gamemaster.'/games?game='.$game, false, false);
                             $response = json_decode($get_data, true);
 
                             if ($httpcode == 200) {

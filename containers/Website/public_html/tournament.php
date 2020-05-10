@@ -46,7 +46,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
 
         // Attempt to execute the prepared statement
         if($httpcode == 201){
-            $message = '<span style="color:green">You added a student!</span>';
+            $message = '<span style="color:green">You added a tournament!</span>';
 
             //Erase fields for no resubmision
             $id = $name = $surname = $fathername =  $grade = $mobile_number = $birthday = "";
