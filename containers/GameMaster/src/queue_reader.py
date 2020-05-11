@@ -86,25 +86,42 @@ def practice(record):
 
 def tournament(record):
 	game = record['game']
-	tournament = record['tournament']
-	logs.info('This is a test')
-	if record['token'] not in pl.find():
-		if tournament not in tournaments['id']:
+	tourID = record['tournament']
+	tourCounter=0
+	tournaments[tourCounter] = {}
+	if record['token'] not in pltr.find():
+		i=0
+		exists=False
+		while i<len(tournaments):
+			if tournaments[i] and tournaments[i]['id']==tourID:
+				exists=True
+			i+=1
+		log.info('we are here')
+		if exists==False:
 			i=0
-			logs.info('we need to enter here')
+			log.info('and here')
 			while i<=len(tournaments):
-				logs.info('here')
-				if not tournaments[i]:
-					logs.info('and then here')
-					tournaments[i]['id']=x['id']
-					tournaments[i]['pop']=x['pop']
-					tournaments[i]['queue']=list()
+				if tournaments[tourCounter]:
+					tourCounter+=1
+				else:
+					log.info('also here')
+					tournaments[tourCounter]={}
+					tournaments[tourCounter]['id']=tourID
+					for x in tr.find():
+						if x['id']==tourID:
+							tournaments[tourCounter]['pop']=x['pop']
+							break					
+					tournaments[tourCounter]['queue']=list()
+					x = pltr.insert_one({"token": record['token'], "id": tourID})
+					log.info(f'{x} from DB')
 					break
 				i+=1
 		else:
 			for x in tournaments:
-				if x['id']==tournament:
+				if x['id']==tourID:
 					x['queue'].append(record['token'])
+					x = pltr.insert_one({"token": record['token'], "id": tourID})
+					log.info(f'{x} from DB')
 					if len(x['queue']) == x['pop']:
 						i=0
 						while i<len(x['queue']):
@@ -127,16 +144,9 @@ def tournament(record):
 							response['tokens'] = pair["players"]
 							producer.send('output', json.dumps(pair))
 
-							pair["players"][0]["id"]=tournament
-							pair["players"][1]["id"]=tournament
-							x = pl.insert_one(pair["players"][0])
-							log.info(f'{x} from DB')
-							x = pl.insert_one(pair["players"][1])
-							log.info(f'{x} from DB')\
-
 						tournaments.pop(x)
 						for y in pen.find():
-							if y['id']==tournament:
+							if y['id']==tourID:
 								new_y=y
 								new_y["round"]=1
 								inp.insert_one(new_y)
@@ -165,6 +175,7 @@ def readRecords(consumer, producer):
 
 		
 tournaments = {}
+
 plays = initPlays()
 	
 
