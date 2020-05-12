@@ -6,4 +6,4 @@
 Διαγραφη ολων εκτος gamemaster ==> ./run 'board down'
 
 Για logs σε gamemaster ==> docker-compose -f gameMaster.yaml logs gamemaster
-Για logs σε οποιοδιποτε αλλο ==> docker-compose -f boardGames.yaml logs playmaster
+Για logs σε οποιοδηποτε αλλο ==> docker-compose -f boardGames.yaml logs playmaster
