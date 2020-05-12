@@ -3,6 +3,39 @@ if [ "$1" == "up" ]; then
 	docker-compose up --build -d 
 elif [ "$1" == "down" ]; then
 	docker-compose down
+elif [ "$1" == "board up" ]; then
+	docker network create \
+	  --driver=bridge \
+	  --attachable=true \
+	  games_net
+	docker network create \
+	  --driver=bridge \
+	  --attachable=true \
+	  nosql_net
+	docker-compose -f boardGames.yaml up --build -d 
+elif [ "$1" == "board down" ]; then
+	docker-compose up -f boardGames.yaml --build -d 
+	docker network rm games_net nosql_net
+elif [ "$1" == "master up" ]; then
+	docker-compose -f gameMaster.yaml up --build -d 
+elif [ "$1" == "master down" ]; then
+	docker-compose -f gameMaster.yaml down
+	docker network rm games_net nosql_net
+elif [ "$1" == "all up" ]; then
+	docker network create \
+	  --driver=bridge \
+	  --attachable=true \
+	  games_net
+	docker network create \
+	  --driver=bridge \
+	  --attachable=true \
+	  nosql_net
+	docker-compose -f boardGames.yaml up --build -d 
+	docker-compose -f boardGames.yaml up --build -d 
+elif [ "$1" == "all down" ]; then
+	docker-compose -f boardGames.yaml down
+	docker-compose -f gameMaster.yaml down
+	docker network rm games_net nosql_net
 elif [ "$1" == "input" ]; then
 	KAFKA_CONTAINER=$( docker ps --filter name=kafka --format={{.ID}})
 	 docker exec -t -i $KAFKA_CONTAINER kafka-console-consumer.sh   --bootstrap-server localhost:9092 --topic input --property print.key=true --property key.separator="-" --from-beginning

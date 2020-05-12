@@ -1,0 +1,22 @@
+version: "3.7"
+services:
+  gamemaster:
+    build: ./containers/GameMaster
+    image: gamemaster
+    ports:
+      - 9000:9000
+      - 5002:5002
+    networks:
+      - nosql_net
+      - games_net
+    volumes:
+      - ./containers/GameMaster/logs:/etc/logs
+networks:
+  nosql_net:
+    driver: bridge
+    external: true
+    attachable: true
+  games_net:
+    driver: bridge
+    external: true
+    attachable: true

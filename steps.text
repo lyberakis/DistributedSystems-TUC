@@ -1,0 +1,9 @@
+Εκκινηση ολων των containers ==> ./run 'all up'
+Διαγραφη ολων των containers ==> ./run 'all down'
+Εκκινηση μονο gamemaster ==> ./run 'master up'
+Διαγραφη μονο gamemaster ==> ./run 'master down'
+Εκκινηση ολων εκτος gamemaster ==> ./run 'board up'
+Διαγραφη ολων εκτος gamemaster ==> ./run 'board down'
+
+Για logs σε gamemaster ==> docker-compose -f gameMaster.yaml logs gamemaster
+Για logs σε οποιοδιποτε αλλο ==> docker-compose -f boardGames.yaml logs playmaster
