@@ -129,10 +129,10 @@ def tournament(record):
 							pair["type"] = "active"
 							pair["game"] = game
 							pair["roundID"] = uuid.uuid4().hex
-							pair["players"]=dict()
-							pair["players"][0] = tournaments[i]['queue'][j]
+							pair["players"]=list()
+							pair["players"].append(tournaments[i]['queue'][j])
 							j+=1
-							pair["players"][1] = tournaments[i]['queue'][j]
+							pair["players"].append(tournaments[i]['queue'][j])
 							j+=1
 							pair['gm'] = 9000
 							pair['pm'] = 1337
