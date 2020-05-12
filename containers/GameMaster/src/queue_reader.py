@@ -87,8 +87,7 @@ def practice(record):
 def tournament(record):
 	game = record['game']
 	tourID = record['tournament']
-	tourCounter=0
-	tournaments[tourCounter] = {}
+	
 	if record['token'] not in pltr.find():
 		i=0
 		exists=False
@@ -96,42 +95,45 @@ def tournament(record):
 			if tournaments[i] and tournaments[i]['id']==tourID:
 				exists=True
 			i+=1
-		log.info('we are here')
+		tournaments[i] = {}
 		if exists==False:
 			i=0
-			log.info('and here')
 			while i<=len(tournaments):
-				if tournaments[tourCounter]:
-					tourCounter+=1
-				else:
-					log.info('also here')
-					tournaments[tourCounter]={}
-					tournaments[tourCounter]['id']=tourID
+				if not tournaments[i]:
+					tournaments[i]={}
+					tournaments[i]['id']=tourID
 					for x in tr.find():
 						if x['id']==tourID:
-							tournaments[tourCounter]['pop']=x['pop']
+							tournaments[i]['pop']=x['pop']
 							break					
-					tournaments[tourCounter]['queue']=list()
+					tournaments[i]['queue']=list()
+					tournaments[i]['queue'].append(record['token'])
 					x = pltr.insert_one({"token": record['token'], "id": tourID})
 					log.info(f'{x} from DB')
 					break
 				i+=1
 		else:
-			for x in tournaments:
-				if x['id']==tourID:
-					x['queue'].append(record['token'])
-					x = pltr.insert_one({"token": record['token'], "id": tourID})
-					log.info(f'{x} from DB')
-					if len(x['queue']) == x['pop']:
+			i=0
+			while i<len(tournaments):
+				if tournaments[i]['id']==tourID:
+					tournaments[i]['queue'].append(record['token'])
+					pltr.insert_one({"token": record['token'], "id": tourID})
+					log.info(f'{tournaments[i]} from DB')
+					test=len(tournaments[i]['queue'])
+					test2=int(tournaments[i]['pop'])
+					log.info(f'{test}--'f'{test2} will be compared')
+					if test == test2:
 						i=0
-						while i<len(x['queue']):
+						log.info('got inside')
+						while i<len(tournaments[i]['queue']):
 							pair = dict()
+							log.info('assign pair 'f'{i}')
 							pair["type"] = "active"
 							pair["game"] = game
 							pair["roundID"] = uuid.uuid4().hex
-							pair["players"][0] = x['queue'][i].copy()
+							pair["players"][0] = tournaments[i]['queue'][i].copy()
 							i+=1
-							pair["players"][1] = x['queue'][i].copy()
+							pair["players"][1] = tournaments[i]['queue'][i].copy()
 							i+=1
 							pair['gm'] = 9000
 							pair['pm'] = 1337
@@ -144,7 +146,7 @@ def tournament(record):
 							response['tokens'] = pair["players"]
 							producer.send('output', json.dumps(pair))
 
-						tournaments.pop(x)
+						tournaments.pop(i)
 						for y in pen.find():
 							if y['id']==tourID:
 								new_y=y
@@ -174,7 +176,7 @@ def readRecords(consumer, producer):
 			tournament(record)
 
 		
-tournaments = {}
+tournaments = {};
 
 plays = initPlays()
 	
