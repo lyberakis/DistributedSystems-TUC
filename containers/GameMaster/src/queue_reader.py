@@ -18,7 +18,7 @@ mydb = myclient["games"]
 pr = mydb["inprogress"]
 
 mydb2 = myclient["tournaments"]
-tr = mydb2["pending"]#game--id--pop--name
+pen = mydb2["pending"]#game--id--pop--name
 pltr = mydb2["players"]#token--id
 inp = mydb2["inprogress"]#game--id--pop--name--round
 
@@ -102,7 +102,7 @@ def tournament(record):
 				if not tournaments[i]:
 					tournaments[i]={}
 					tournaments[i]['id']=tourID
-					for x in tr.find():
+					for x in pen.find():
 						if x['id']==tourID:
 							tournaments[i]['pop']=x['pop']
 							break					
@@ -123,18 +123,17 @@ def tournament(record):
 					test2=int(tournaments[i]['pop'])
 					log.info(f'{test}--'f'{test2} will be compared')
 					if test == test2:
-						i=0
-						log.info('got inside')
-						while i<len(tournaments[i]['queue']):
+						j=0
+						while j<len(tournaments[i]['queue']):
 							pair = dict()
-							log.info('assign pair 'f'{i}')
 							pair["type"] = "active"
 							pair["game"] = game
 							pair["roundID"] = uuid.uuid4().hex
-							pair["players"][0] = tournaments[i]['queue'][i].copy()
-							i+=1
-							pair["players"][1] = tournaments[i]['queue'][i].copy()
-							i+=1
+							pair["players"]=dict()
+							pair["players"][0] = tournaments[i]['queue'][j]
+							j+=1
+							pair["players"][1] = tournaments[i]['queue'][j]
+							j+=1
 							pair['gm'] = 9000
 							pair['pm'] = 1337
 							status = assignPlay(pair)
@@ -154,8 +153,8 @@ def tournament(record):
 								inp.insert_one(new_y)
 								pen.delete_one(y)
 								break
-
-				break
+					break
+				i+=1
 	#else:
 		#new_round
 

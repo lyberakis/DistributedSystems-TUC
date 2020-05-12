@@ -50,6 +50,13 @@ class Tournament(Resource):
             i+=1
         jsonTournaments=JSONEncoder().encode(tournaments)
         return jsonTournaments, 200#for each Tournament name--id--pop--connected
+
+    def delete(self):
+        x=pltr.delete_many({})
+        if x:
+            return '', 201
+        else:
+            return '', 400
     
     # create a new tournament
     def post(self):
