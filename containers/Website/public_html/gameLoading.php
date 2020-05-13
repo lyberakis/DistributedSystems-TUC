@@ -34,7 +34,7 @@ if (isset($_GET['game'])) {
 
     if ($_GET['tournament'] != 'null') {
         $_SESSION['tournament'] = true;
-        $_SESSION['totalRounds'] = log($_GET['rounds']);
+        $_SESSION['totalRounds'] = log($_GET['rounds'],2);
         $_SESSION['curRound'] = 1;
     }else{
         $_SESSION['tournament'] = false;
