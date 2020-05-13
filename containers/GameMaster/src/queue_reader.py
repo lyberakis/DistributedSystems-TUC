@@ -20,7 +20,7 @@ pr = mydb["inprogress"]
 mydb2 = myclient["tournaments"]
 pen = mydb2["pending"]#game--id--pop--name
 pltr = mydb2["players"]#token--id
-inp = mydb2["inprogress"]#game--id--pop--name--round
+inp = mydb2["inprogress"]#game--id--pop--name--round--received
 
 def initPlays():
 	plays = {};
@@ -120,7 +120,6 @@ def tournament(record):
 			log.info(f'{tournaments[i]} from DB')
 			test=len(tournaments[i]['queue'])
 			test2=int(tournaments[i]['pop'])
-			log.info(f'{test}--'f'{test2} will be compared')
 			
 			if test == test2:
 				j=0
@@ -150,6 +149,7 @@ def tournament(record):
 					if y['id']==tourID:
 						new_y=y
 						new_y["round"]=1
+						new_y["received"]=0
 						x=inp.insert_one(new_y)
 						x=pen.delete_one({'id': tourID})
 						break
