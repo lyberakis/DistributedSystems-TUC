@@ -149,7 +149,7 @@ class Game extends React.Component {
 	  	}
 	  	
     	return (
-			<div className="game bg">
+			<div className="game">
 				<div className="game-title">
 					<div>Tic - Tac - Toe</div>
 				</div>
