@@ -91,15 +91,17 @@ def tournament(record):
 	if record['token'] not in pltr.find():
 		i=0
 		exists=False
+		
 		while i<len(tournaments):
-			if tournaments[i] and tournaments[i]['id']==tourID:
-				exists=True
+			if i in tournaments:
+				if tournaments[i]['id']==tourID:
+					exists=True
+					break
 			i+=1
-		tournaments[i] = {}
 		if exists==False:
 			i=0
 			while i<=len(tournaments):
-				if not tournaments[i]:
+				if i not in tournaments:
 					tournaments[i]={}
 					tournaments[i]['id']=tourID
 					for x in pen.find():
@@ -113,48 +115,44 @@ def tournament(record):
 					break
 				i+=1
 		else:
-			i=0
-			while i<len(tournaments):
-				if tournaments[i]['id']==tourID:
-					tournaments[i]['queue'].append(record['token'])
-					pltr.insert_one({"token": record['token'], "id": tourID})
-					log.info(f'{tournaments[i]} from DB')
-					test=len(tournaments[i]['queue'])
-					test2=int(tournaments[i]['pop'])
-					log.info(f'{test}--'f'{test2} will be compared')
-					if test == test2:
-						j=0
-						while j<len(tournaments[i]['queue']):
-							pair = dict()
-							pair["type"] = "active"
-							pair["game"] = game
-							pair["roundID"] = uuid.uuid4().hex
-							pair["players"]=list()
-							pair["players"].append(tournaments[i]['queue'][j])
-							j+=1
-							pair["players"].append(tournaments[i]['queue'][j])
-							j+=1
-							pair['gm'] = 9000
-							pair['pm'] = 1337
-							status = assignPlay(pair)
-							log.info(f'{status} from PM')
+			tournaments[i]['queue'].append(record['token'])
+			pltr.insert_one({"token": record['token'], "id": tourID})
+			log.info(f'{tournaments[i]} from DB')
+			test=len(tournaments[i]['queue'])
+			test2=int(tournaments[i]['pop'])
+			log.info(f'{test}--'f'{test2} will be compared')
+			
+			if test == test2:
+				j=0
+				while j<len(tournaments[i]['queue']):
+					pair = dict()
+					pair["type"] = "active"
+					pair["game"] = game
+					pair["roundID"] = uuid.uuid4().hex
+					pair["players"]=list()
+					pair["players"].append(tournaments[i]['queue'][j])
+					j+=1
+					pair["players"].append(tournaments[i]['queue'][j])
+					j+=1
+					pair['gm'] = 9000
+					pair['pm'] = 1337
+					status = assignPlay(pair)
+					log.info(f'{status} from PM')
 
-							response = dict()
-							response['gm'] = 9000
-							response['pm'] = 1337
-							response['tokens'] = pair["players"]
-							producer.send('output', json.dumps(pair))
+					response = dict()
+					response['gm'] = 9000
+					response['pm'] = 1337
+					response['tokens'] = pair["players"]
+					producer.send('output', json.dumps(pair))
 
-						tournaments.pop(i)
-						for y in pen.find():
-							if y['id']==tourID:
-								new_y=y
-								new_y["round"]=1
-								inp.insert_one(new_y)
-								pen.delete_one(y)
-								break
-					break
-				i+=1
+				tournaments.pop(i)
+				for y in pen.find():
+					if y['id']==tourID:
+						new_y=y
+						new_y["round"]=1
+						x=inp.insert_one(new_y)
+						x=pen.delete_one({'id': tourID})
+						break
 	#else:
 		#new_round
 
