@@ -144,6 +144,9 @@ def tournament(record):
 					response['tokens'] = pair["players"]
 					producer.send('output', json.dumps(pair))
 
+					x = pr.insert_one(pair)
+					log.info(f'{x} from DB')
+
 				tournaments.pop(i)
 				for y in pen.find():
 					if y['id']==tourID:

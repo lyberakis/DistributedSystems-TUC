@@ -10,7 +10,7 @@ producer = kafka.createProducer()
 
 consumer.subscribe(['scores'])
 
-	#TODO: connect producer here
+	#TODO: find if it is a  tournament game or not and change tie stuff
 
 try:
     # try to instantiate a client instance
@@ -32,32 +32,48 @@ mydb2 = myclient["tournaments"]
 pltr = mydb2["players"]#token--id
 games = mydb2["games"]#id--winner--loser--tie--round--game
 inp = mydb2["inprogress"]#game--id--pop--name--round--received
-final = nydb2["completed"]#game--id--pop--name--winner
+final = mydb2["completed"]#game--id--pop--name--winner
 
 def handleScore(consumer):
 	for message in consumer:
 		record = message.value
 		log.info(f'{record} received')
 
-		tourID=record['tournament']
+		tourID=None
+		for y in pltr.find():
+			if y['token']==record['players'][0]:
+				tourID=y['id']
+				break
+
 		if tourID is None:
 			myquery = { "roundID": record['roundID'] }
 			prog.delete_one(myquery)
 			compl.insert_one(record)
-		else if record['tie'] is False:
+			log.info('All good with practice')
+		elif record['winner'] is not None:
+			myquery = { "roundID": record['roundID'] }
+			prog.delete_one(myquery)
 			for y in prog.find():
 				if y['id']==tourID:
-					data={"id": tourID, "winner": record['winner'], "loser": record['loser'],"tie": record['tie'], "round": y['round'], "game": y['game']}
+					loser=None
+					for z in record['players']:
+						if z is not record['winner']:
+							loser=z
+							break
+					data={"id": tourID, "winner": record['winner'], "loser": loser, "round": y['round'], "game": y['game']}
 					games.insert_one(data)
-					
+					pltr.delete_one({"token": loser})
+
 					pop=int(y['pop'])
 					nextRound=int(y['round'])+1
 					if math.log2(pop)<nextRound:#this was the final
 						champ={"id": tourID, "winner": record['winner'], "game": y['game'], "name": y['name'], "pop": y['pop']}
 						final.insert_one(champ)
-						prog.delete_one({"id": tourID})
+						pltr.delete_one({"token": record['winner']})
+						inp.delete_one({"id": tourID})
 					else:
-						producer.send({"token": record['winner'], "game": y['game'], "tournament": tourID})
+						player={"token": record['winner'], "game": y['game'], "tournament": tourID}
+						producer.send('input', player)
 						i=int(y['round'])
 						while i!=0:
 							pop=pop/2
