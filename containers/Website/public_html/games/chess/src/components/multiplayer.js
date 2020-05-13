@@ -112,7 +112,8 @@ export function setListeners(obj){
       obj.setState({
         connectionStatus: 2,
         myTurn: message['turn'],
-        roundID: message['roundID']
+        roundID: message['roundID'],
+        myColor: message['turn'] ? 'white' : 'black',
       })
     }else{
       obj.setState({
@@ -162,10 +163,17 @@ export function setListeners(obj){
       })
 
       //Set Game progress
-      if (board['progress']!==0) {
+      if (board['progress']===1) {
         obj.setState({
           connectionStatus: 3,
+          endstate: 1
         })
+      }else if (board['progress']===2){
+        obj.setState({
+          connectionStatus: 3,
+          endstate: 2,
+        })
+
       }
   }); 
 
@@ -198,6 +206,7 @@ export function setListeners(obj){
         }else if(xhr.connectionStatus === 403){
           obj.setState({
             connectionStatus: -3,
+            endstate: 1,
           })
         }
       }

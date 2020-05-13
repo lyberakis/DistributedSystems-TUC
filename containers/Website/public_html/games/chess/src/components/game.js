@@ -11,6 +11,7 @@ import Queen from '../pieces/queen.js';
 import Pawn from '../pieces/pawn.js';
 import Rook from '../pieces/rook.js';
 import * as conn from './multiplayer.js'; 
+import * as ui from './messages.js'
 
 export default class Game extends React.Component {
   constructor(props){
@@ -35,7 +36,8 @@ export default class Game extends React.Component {
       status: '',
       connectionStatus: data['connectionStatus'],
       progress: 0,
-      roundID: null
+      roundID: null,
+      endstate: 0,
     }
     this.setBishop = this.setBishop.bind(this);
     this.setQueen = this.setQueen.bind(this);
@@ -66,25 +68,25 @@ export default class Game extends React.Component {
         squares[this.state.sourceSelection].style = {...squares[this.state.sourceSelection].style, backgroundColor: ""};
 
         if(squares[i] && squares[i].player === this.state.player && 
-          (squares[this.state.sourceSelection].constructor.name==="King" || squares[this.state.sourceSelection].constructor.name==="Rook") &&
-          (squares[i].constructor.name==="King" || squares[i].constructor.name==="Rook")){/////////////////castling case
+          (squares[this.state.sourceSelection] instanceof King || squares[this.state.sourceSelection] instanceof Rook) &&
+          (squares[i] instanceof King || squares[i] instanceof Rook)){/////////////////castling case
           
           let isPossible = true;
 
           if (squares[i].player === 1){//check correct position of pieces
-            if (this.state.sourceSelection===60 && squares[this.state.sourceSelection].constructor.name==="King"){
+            if (this.state.sourceSelection===60 && squares[this.state.sourceSelection] instanceof King){
               if (i!==63 && i!==56)
                 isPossible=false;
-            }else if (i===60 && squares[i].constructor.name==="King"){
+            }else if (i===60 && squares[i] instanceof King){
               if (this.state.sourceSelection!==63 && this.state.sourceSelection!==56)
                 isPossible=false;
             }else
               isPossible=false;
           }else{
-            if (this.state.sourceSelection===4 && squares[this.state.sourceSelection].constructor.name==="King"){
+            if (this.state.sourceSelection===4 && squares[this.state.sourceSelection] instanceof King){
               if (i!==0 && i!==7)
                 isPossible=false;
-            }else if (i===4 && squares[i].constructor.name==="King"){
+            }else if (i===4 && squares[i] instanceof King){
               if (this.state.sourceSelection!==0 && this.state.sourceSelection!==7)
                 isPossible=false;
             }else
@@ -261,6 +263,7 @@ export default class Game extends React.Component {
               check=true;
 
             var kingStatus = 0;
+            var itisCheck = false;
             const saveSquare = squares[i];
             squares[i] = squares[this.state.sourceSelection];
             squares[this.state.sourceSelection] = null;
@@ -283,7 +286,7 @@ export default class Game extends React.Component {
             let moveOn=true;
             if (check){
               for (let j=0; j<squares.length; j++){
-                if (squares[j] && squares[j].constructor.name==="King" && squares[j].player===this.state.player){//find the king
+                if (squares[j] && squares[j] instanceof King && squares[j].player===this.state.player){//find the king
                   for (let k=0; k<squares.length; k++){
                     if (squares[k] && squares[k].player!==this.state.player){
                       const checkSrcToDestPath = squares[k].getSrcToDestPath(k, j);
@@ -318,7 +321,7 @@ export default class Game extends React.Component {
               }
             }else{
               for (let j=0; j<squares.length; j++){
-                if (squares[j] && squares[j].constructor.name==="King" && squares[j].player===this.state.player){//find the king
+                if (squares[j] && squares[j] instanceof King && squares[j].player===this.state.player){//find the king
                   for (let k=0; k<squares.length; k++){
                     if (squares[k] && squares[k].player!==this.state.player){
                       const checkSrcToDestPath = squares[k].getSrcToDestPath(k, j);
@@ -356,19 +359,17 @@ export default class Game extends React.Component {
             if (moveOn){
               //code for check and checkmate
               for (let j=0; j<squares.length; j++){
-                if (squares[j] && squares[j].constructor.name==="King" && squares[j].player!==this.state.player){//find the king
+                if (squares[j] && squares[j] instanceof King && squares[j].player!==this.state.player){//find the king
                   for (let k=0; k<squares.length; k++){
                     if (squares[k] && squares[k].player===this.state.player){
                       const srcToDestPath = squares[k].getSrcToDestPath(k, j);
                       if (squares[k].isMovePossible(k, j, isDestEnemyOccupied) && this.isMoveLegal(srcToDestPath, squares)){//find if enemy threatens the king
-                        let itisCheck=false;
-                        srcToDestPath[srcToDestPath.length]=k;
 
                         for (let l=0; l<squares.length; l++){
                           if (squares[l] && squares[l].player!==this.state.player){
                             for (let m=0; m<srcToDestPath.length; m++){
                               if (squares[l].isMovePossible(l, srcToDestPath[m], isDestEnemyOccupied) && this.isMoveLegal(squares[l].getSrcToDestPath(l, srcToDestPath[m]), squares) 
-                                && squares[l].constructor.name!=="King"){
+                                && !(squares[l] instanceof King)){
                                 itisCheck=true;
                                 break;
                               }
@@ -519,7 +520,7 @@ export default class Game extends React.Component {
                 kingStatus=3;
               }else if ((blackPieces===1 && this.state.player===1) || (whitePieces===1 && this.state.player===2)){
                 for (let j=0; j<squares.length; j++){
-                  if (squares[j] && squares[j].constructor.name==="King" && squares[j].player!==this.state.player){//find the king
+                  if (squares[j] && squares[j] instanceof King && squares[j].player!==this.state.player){//find the king
                     let countMoves = 0;
 
                     if (!squares[j-1] && j-1>0){
@@ -639,14 +640,14 @@ export default class Game extends React.Component {
               //code for pawn change
               if (this.state.player===1){
                 for (let j=0; j<8; j++){
-                  if (squares[j] && squares[j].player===1 && squares[j].constructor.name==="Pawn"){
+                  if (squares[j] && squares[j].player===1 && squares[j] instanceof Pawn){
                     this.setState({changePawn: j});
                     break;
                   }
                 }
               }else{
                 for (let j=56; j<64; j++){
-                  if (squares[j] && squares[j].player===2 && squares[j].constructor.name==="Pawn"){
+                  if (squares[j] && squares[j].player===2 && squares[j] instanceof Pawn){
                     this.setState({changePawn: j});
                     break;
                   }
@@ -927,21 +928,33 @@ export default class Game extends React.Component {
     let showButtons=false;
     if (this.state.changePawn!==-1)
       showButtons=true;
+    
+    let status = ui.showGameStatus(this.state.connectionStatus);
+    let endState = ui.showWinner(this.state.endstate, this.state.connectionStatus);
+
+    if (this.state.connectionStatus !== 5) {
+        var turn = ui.showTurn(this.state.connectionStatus, this.state.myTurn);
+        var symbol ='Your color: <div id="player-turn-box" style="background-color:'+this.state.myColor+'"></div>'
+    }
         
     return (
-      <div>
-        <div className="game">
+      <div className="game"> 
+          <div className="game-title">
+            <div>Chess</div>
+          </div>
+
           <div className="game-board">
             <Board 
               squares = {this.state.squares}
               onClick = {(i) => this.handleClick(i)}
             />
           </div>
+
           <div className="game-info">
-            <h3>Turn</h3>
-            <div id="player-turn-box" style={{backgroundColor: this.state.turn}}>
-  
-            </div>
+            <div>{status}</div>
+            <td dangerouslySetInnerHTML={{__html: symbol}} />
+            <div>{turn}</div>
+           
             <div className="game-status">{this.state.kingStatus}</div>
             <div className="game-status">{this.state.status}</div>
 
@@ -962,7 +975,8 @@ export default class Game extends React.Component {
               : <div> </div>
             }
           </div>
-        </div>
+          <div id="endstate">{endState}</div>
+
       </div>
     );
   }
