@@ -678,6 +678,9 @@ export default class Game extends React.Component {
                   blackFallenSoldiers: textBlackFallenSoldiers,
                   progress : 1
                 }
+                this.setState({
+                  endstate: 3,
+                })
               }else if(kingStatus===3){
                 message = {
                   roundID : this.state.roundID,
@@ -687,6 +690,9 @@ export default class Game extends React.Component {
                   blackFallenSoldiers: textBlackFallenSoldiers,
                   progress : 2
                 }
+                this.setState({
+                  endstate: 2,
+                })
               }else if(kingStatus===1){
                 message = {
                   roundID : this.state.roundID,

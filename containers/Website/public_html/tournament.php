@@ -27,8 +27,8 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     $name = secure_input($_POST["name"]);
 
     //Input format validation
-    if (!filter_var($number, FILTER_VALIDATE_INT) && ($number & ($number - 1)) == 0) {
-        $message = '<span style="color:red">Number of player must be a power of two!</span>';
+    if (($number & ($number - 1)) != 0) {
+        $message = '<span style="color:red">Number of players must be a power of two!</span>';
     }
 
     // Validate credentials
@@ -80,7 +80,10 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
                         <label for="name">Game</label>
                     </div>
                     <div class="col-md-9">
-                        <input type="text" name="game" id="game" placeholder="tic-tac-toe" value="<?php echo $game; ?>" required>
+                        <select id="game" name="game" required>
+                            <option value="tic-tac-toe">tic-tac-toe</option>
+                            <option value="chess">chess</option>
+                        </select>
                     </div>
 
                     <div class="col-md-3">
