@@ -88,7 +88,12 @@ def tournament(record):
 	game = record['game']
 	tourID = record['tournament']
 	
-	if record['token'] not in pltr.find():
+	checkPlayer=False
+	for x in pltr.find():
+		if record['token']==x['token']:
+			checkPlayer=True
+
+	if checkPlayer==False:
 		i=0
 		exists=False
 		
@@ -122,31 +127,7 @@ def tournament(record):
 			test2=int(tournaments[i]['pop'])
 			
 			if test == test2:
-				j=0
-				while j<len(tournaments[i]['queue']):
-					pair = dict()
-					pair["type"] = "active"
-					pair["game"] = game
-					pair["roundID"] = uuid.uuid4().hex
-					pair["players"]=list()
-					pair["players"].append(tournaments[i]['queue'][j])
-					j+=1
-					pair["players"].append(tournaments[i]['queue'][j])
-					j+=1
-					pair['gm'] = 9000
-					pair['pm'] = 1337
-					status = assignPlay(pair)
-					log.info(f'{status} from PM')
-
-					response = dict()
-					response['gm'] = 9000
-					response['pm'] = 1337
-					response['tokens'] = pair["players"]
-					producer.send('output', json.dumps(pair))
-
-					x = pr.insert_one(pair)
-					log.info(f'{x} from DB')
-
+				assignTournamentGames(tournaments[i]['queue'], game)
 				tournaments.pop(i)
 				for y in pen.find():
 					if y['id']==tourID:
@@ -156,8 +137,67 @@ def tournament(record):
 						x=inp.insert_one(new_y)
 						x=pen.delete_one({'id': tourID})
 						break
-	#else:
-		#new_round
+	else:
+		i=0
+		exists=False
+		log.info('got into new round')
+		while i<len(newRounds):
+			if i in newRounds:
+				if newRounds[i]['id']==tourID:
+					exists=True
+					break
+			i+=1
+		if exists==False:
+			log.info('first one here')
+			i=0
+			while i<=len(newRounds):
+				if i not in newRounds:
+					newRounds[i]={}
+					newRounds[i]['id']=tourID
+					for x in inp.find():
+						if x['id']==tourID:
+							newRounds[i]['pop']=x['pop']/(2*int(x['round']))
+							break					
+					newRounds[i]['queue']=list()
+					newRounds[i]['queue'].append(record['token'])
+					break
+				i+=1
+		else:
+			log.info('second one here')
+			newRounds[i]['queue'].append(record['token'])
+			test=len(newRounds[i]['queue'])
+			test2=int(newRounds[i]['pop'])
+			
+			if test == test2:
+				log.info('all good')
+				assignTournamentGames(newRounds[i]['queue'], game)
+				newRounds.pop(i)
+
+def assignTournamentGames(queue, game):
+	j=0
+	while j<len(queue):
+		pair = dict()
+		pair["type"] = "active"
+		pair["game"] = game
+		pair["roundID"] = uuid.uuid4().hex
+		pair["players"]=list()
+		pair["players"].append(queue[j])
+		j+=1
+		pair["players"].append(queue[j])
+		j+=1
+		pair['gm'] = 9000
+		pair['pm'] = 1337
+		status = assignPlay(pair)
+		log.info(f'{status} from PM')
+
+		response = dict()
+		response['gm'] = 9000
+		response['pm'] = 1337
+		response['tokens'] = pair["players"]
+		producer.send('output', json.dumps(pair))
+
+		x = pr.insert_one(pair)
+		log.info(f'{x} from DB')
 
 
 def readRecords(consumer, producer):
@@ -177,13 +217,8 @@ def readRecords(consumer, producer):
 
 		
 tournaments = {};
-
+newRounds ={};
 plays = initPlays()
-	
-
 
 while True:
 	readRecords(consumer, producer)
-	
-
-

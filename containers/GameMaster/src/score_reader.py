@@ -35,10 +35,18 @@ pltr = mydb2["players"]#token--id
 games = mydb2["games"]#id--winner--loser--tie--round--game
 inp = mydb2["inprogress"]#game--id--pop--name--round--received
 final = mydb2["completed"]#game--id--pop--name--winner
+boolTest=0
 
 def handleScore(consumer):
 	global boolTest
 	for message in consumer:
+		if boolTest==0:
+			pltr.insert_one({"token": "1", "id": "testTour"})
+			pltr.insert_one({"token": "2", "id": "testTour"})
+			pltr.insert_one({"token": "3", "id": "testTour"})
+			pltr.insert_one({"token": "4", "id": "testTour"})
+			inp.insert_one({"game": "chess", "id": "testTour", "pop": 4, "name": "test", "round": 1, "received": 0})
+			boolTest=1
 		record = message.value
 		log.info(f'{record} received')
 
@@ -65,21 +73,22 @@ def handleScore(consumer):
 					data={"id": tourID, "winner": record['winner'], "loser": loser, "round": y['round'], "game": y['game']}
 					games.insert_one(data)
 					pltr.delete_one({"token": loser})
-					pltr.delete_one({"token": record['winner']})
+					
 					pop=int(y['pop'])
 					nextRound=int(y['round'])+1
 					if math.log2(pop)<nextRound:#this was the final
 						champ={"id": tourID, "winner": record['winner'], "game": y['game'], "name": y['name'], "pop": y['pop']}
 						final.insert_one(champ)
+						pltr.delete_one({"token": record['winner']})
 						inp.delete_one({"id": tourID})
 					else:
 						player={"token": record['winner'], "game": y['game'], "tournament": tourID}
 						producer.send('input', player)
+						
 						i=int(y['round'])
-						while i!=0:
-							pop=pop/2
-							i-=1
+						pop=pop/(2*i)
 						received=(int(y['received'])+1)
+						
 						if int(pop)==received:#advance to next round
 							old={"id": tourID}
 							new={"$set": {"round": nextRound, "received": 0}}
