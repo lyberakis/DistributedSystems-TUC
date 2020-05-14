@@ -109,9 +109,16 @@ io.on('connection', (socket) => {
 			progress: progress
 		};
 
-		//Transmit the board to the other player
-		var sender = players[0]['socket'] === socket ? 0 : 1;
-		players[invert(sender)]['socket'].emit('board', message)
+		//Transmit the board to the other players
+		var sender = -1;
+		for (var i = 0; i < players.length; i++) {
+			if (players[i]['socket'] === socket) {				
+				sender = i;
+			}else{
+				players[i]['socket'].emit('board', message);
+			}
+		}	
+
 
 		//Forward the game to the spectator
 		for (i in games[roundID]['spectators']){
@@ -144,10 +151,19 @@ io.on('connection', (socket) => {
 
 						console.log("Player with token: "+players[i]['token'] +" left." )
 
-						//announce as winner the other player
-						if (players[invert(i)] != undefined) {
-							players[invert(i)]['socket'].emit('endgame', null);
-							createScore(round, invert(i));
+						if (players.length == 2) {
+							//announce as winner the other player
+							if (players[invert(i)] != undefined) {
+								players[invert(i)]['socket'].emit('endgame', null);
+								createScore(round, invert(i));
+							}
+						}else{
+							for (var j = 0; j < players.length; j++) {
+								if (i != j && players[j]['socket'] != undefined) {
+									players[j]['socket'].emit('endgame', null);
+								}
+							}
+							createScore(round,  null);
 						}
 
 						for (j in spectators){
@@ -155,8 +171,8 @@ io.on('connection', (socket) => {
 						}
 						break;
 
-
 					}
+
 				}
 			}
 		}
