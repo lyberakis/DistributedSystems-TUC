@@ -384,6 +384,16 @@ hr {
   cursor: pointer;
 }
 
+.roundInfo{
+  display: inline-block;
+  position: fixed;
+  padding: 10px;
+  margin: 5px;
+  background-color: #000000a1;
+  border-radius: 5px;
+  font-size: 20px;
+}
+
 
 /*Game Options page*/
 
