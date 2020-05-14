@@ -31,8 +31,8 @@ $content = '<div id="game_frame">
         <div id="content" class="bg">
             <?php
                 if ($_SESSION['tournament'] == true) {
-                    $cur = '<span id="curRound">'.$_SESSION['curRound'] .'</span>';
-                    $total = '<span id="totalRounds">'.$_SESSION['totalRounds'] .'</span>';
+                    $cur = '<div class="roundInfo">Round: <span id="curRound">'.$_SESSION['curRound'] .'</span>';
+                    $total = '<span id="totalRounds">'.$_SESSION['totalRounds'] .'</span></div>';
                     echo $cur." / ".$total;
                 }
                 echo $content; 
