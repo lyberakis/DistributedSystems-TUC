@@ -96,7 +96,6 @@ def tournament(record):
 	if checkPlayer==False:
 		i=0
 		exists=False
-		
 		while i<len(tournaments):
 			if i in tournaments:
 				if tournaments[i]['id']==tourID:
@@ -112,7 +111,7 @@ def tournament(record):
 					for x in pen.find():
 						if x['id']==tourID:
 							tournaments[i]['pop']=x['pop']
-							break					
+							break
 					tournaments[i]['queue']=list()
 					tournaments[i]['queue'].append(record['token'])
 					x = pltr.insert_one({"token": record['token'], "id": tourID})
@@ -140,7 +139,6 @@ def tournament(record):
 	else:
 		i=0
 		exists=False
-		log.info('got into new round')
 		while i<len(newRounds):
 			if i in newRounds:
 				if newRounds[i]['id']==tourID:
@@ -148,7 +146,6 @@ def tournament(record):
 					break
 			i+=1
 		if exists==False:
-			log.info('first one here')
 			i=0
 			while i<=len(newRounds):
 				if i not in newRounds:
@@ -163,13 +160,11 @@ def tournament(record):
 					break
 				i+=1
 		else:
-			log.info('second one here')
 			newRounds[i]['queue'].append(record['token'])
 			test=len(newRounds[i]['queue'])
 			test2=int(newRounds[i]['pop'])
 			
 			if test == test2:
-				log.info('all good')
 				assignTournamentGames(newRounds[i]['queue'], game)
 				newRounds.pop(i)
 

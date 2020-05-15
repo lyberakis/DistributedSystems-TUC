@@ -35,18 +35,10 @@ pltr = mydb2["players"]#token--id
 games = mydb2["games"]#id--winner--loser--tie--round--game
 inp = mydb2["inprogress"]#game--id--pop--name--round--received
 final = mydb2["completed"]#game--id--pop--name--winner
-boolTest=0
 
 def handleScore(consumer):
 	global boolTest
 	for message in consumer:
-		if boolTest==0:
-			pltr.insert_one({"token": "1", "id": "testTour"})
-			pltr.insert_one({"token": "2", "id": "testTour"})
-			pltr.insert_one({"token": "3", "id": "testTour"})
-			pltr.insert_one({"token": "4", "id": "testTour"})
-			inp.insert_one({"game": "chess", "id": "testTour", "pop": 4, "name": "test", "round": 1, "received": 0})
-			boolTest=1
 		record = message.value
 		log.info(f'{record} received')
 
