@@ -114,27 +114,37 @@ function elementHandler () {
     }
 }
 async function redirect(url) {
-    await timer(5000);
+    await timer(10000);
     window.location.href = url;
 }
 
 
 
 function checkState () {
-    var total = $('#totalRounds').innerText;
-    var current = $('#curRound').innerText;
+    var total = document.getElementById("totalRounds").innerHTML;
+    var current = document.getElementById("curRound").innerHTML;
+    var iframe = document.getElementById("gameFrame");
+    var container = iframe.contentWindow.document.getElementById("endstate")
     var url = "portal.php";
-    var endgame = $("#endstate").innerText;
-    console.log(endgame);
+    var endgame = container.innerHTML;
+    // console.log(endgame);
+    // console.log(total);
+    // console.log(current);
 
     if (total != '' && current != '') {
-        if (endgame == 'VICTORY') {
-            if (total < current){       //redirect for the next round
-                url = "gameLoadind.php?redirect=true&replay=false";
-            }
-        }else if(endgame == 'TIE') {
-            url = "gameLoadind.php?redirect=true&replay=true"; //redirect but not increase round
-        }          
+      total = parseInt(total);
+      current = parseInt(current);
+      console.log(endgame);
+      console.log(total);
+      console.log(current);
+      if (endgame == 'VICTORY!') {
+        if (total > current){       //redirect for the next round
+          console.log('redirecting')
+          url = "gameLoading.php?redirect=true&replay=false";
+        }
+      }else if(endgame == 'TIE!') {
+        url = "gameLoading.php?redirect=true&replay=true"; //redirect but not increase round
+      }          
        
     }
     console.log(url);

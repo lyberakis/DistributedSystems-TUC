@@ -14,6 +14,9 @@ $config->setRequiredAck(1);
 $config->setIsAsyn(false);
 $config->setProduceInterval(500);
 
+
+$_SESSION["gm"] = $_SESSION["pm"] = '';
+
 if (isset($_GET['game'])) {
     if (isset($_GET['roundID'])) {
         $play = array(
