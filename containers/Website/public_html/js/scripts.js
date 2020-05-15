@@ -12,42 +12,6 @@ function ConfirmLogout() {
 	return confirm('Are you sure you want to logout?');
 }
 
-//Asynchronous Search of student    
-$(document).ready(function(){
-    $('.search-box input[type="text"]').on("keyup input", function(){
-        
-        /* Get input value on change */
-        var inputVal = $(this).val();
-        var resultDropdown = $(".result");
-
-        //Default message 
-        var default_table = "<table>\
-                    <tr>\
-                        <th style='width: 15%'><strong>ID</strong></th>\
-                        <th style='width: 15%'><strong>Name</strong></th>\
-                        <th style='width: 15%'><strong>Surname</strong></th>\
-                        <th style='width: 15%'><strong>Father's name</strong></th>\
-                        <th style='width: 10%'><strong>Grade</strong></th>\
-                        <th style='width: 15%'><strong>Mobile number</strong></th>\
-                        <th style='width: 15%'><strong>Birthday</strong></th>\
-                    </tr>\
-                    <tr>\
-                        <td colspan='7' style='text-align: center;'>Search something...</td>\
-                    </tr>\
-                </table>";
-
-        if(inputVal.length){
-            $.get("backend-search.php", {term: inputVal}).done(function(data){
-                
-                // Display the returned data in browser
-                resultDropdown.html(data);
-            });
-        } else{
-            resultDropdown.html(default_table);
-        }
-    });
-});
-
  // function to set the height of content on fly to keep footer on the bottom.
  function autoHeight() {
    $('#content').css('min-height', 0);
@@ -121,22 +85,17 @@ async function redirect(url) {
 
 
 function checkState () {
-    var total = document.getElementById("totalRounds").innerHTML;
-    var current = document.getElementById("curRound").innerHTML;
+    var total_el = document.getElementById("totalRounds");
+    var current_el = document.getElementById("curRound");
     var iframe = document.getElementById("gameFrame");
     var container = iframe.contentWindow.document.getElementById("endstate")
     var url = "portal.php";
     var endgame = container.innerHTML;
-    // console.log(endgame);
-    // console.log(total);
-    // console.log(current);
 
-    if (total != '' && current != '') {
-      total = parseInt(total);
-      current = parseInt(current);
-      console.log(endgame);
-      console.log(total);
-      console.log(current);
+    if (total_el != null && current_el != null) {
+      total = parseInt(total_el.innerHTML);
+      current = parseInt(current_el.innerHTML);
+
       if (endgame == 'VICTORY!') {
         if (total > current){       //redirect for the next round
           console.log('redirecting')
