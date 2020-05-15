@@ -214,6 +214,6 @@ def readRecords(consumer, producer):
 tournaments = {};
 newRounds ={};
 plays = initPlays()
-
+#pen.insert_one({"game": "chess", "id": "testTour", "pop": 4, "name": "test"})
 while True:
 	readRecords(consumer, producer)

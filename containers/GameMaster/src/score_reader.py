@@ -45,6 +45,7 @@ def handleScore(consumer):
 		tourID=None
 		for y in pltr.find():
 			if y['token']==record['players'][0]:
+				log.info(y)
 				tourID=y['id']
 				break
 
@@ -130,5 +131,4 @@ def assignPlay(pair):
 			
 
 while True:
-	handleScore(consumer)
-	
+	handleScore(consumer)	
