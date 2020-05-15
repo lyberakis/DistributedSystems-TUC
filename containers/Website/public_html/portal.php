@@ -32,6 +32,7 @@ require_once 'functions.php';
             <div class="games">
                 <h1>Game List</h1>
                 <?php
+                echo $_SESSION["token"];
                 // Show games dynamically
                     $games = getGames();
                     foreach($games as $game) {
