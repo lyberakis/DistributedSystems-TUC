@@ -81,8 +81,13 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
                     </div>
                     <div class="col-md-9">
                         <select id="game" name="game" required>
-                            <option value="tic-tac-toe">tic-tac-toe</option>
-                            <option value="chess">chess</option>
+                            <?php
+                            // Show games dynamically
+                                $games = getGames();
+                                foreach($games as $game) {
+                                    echo '<option value="'.$game.'">'.$game.'</option>';
+                                }
+                            ?>
                         </select>
                     </div>
 
