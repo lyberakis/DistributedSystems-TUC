@@ -4,8 +4,8 @@ if (!isset($_SESSION)) {
     session_start();
     $_SESSION["token"] = rand(0, 10005);
 }
-$_SESSION['gm'] = '';
-$_SESSION['pm'] = '';
+
+
 // Check if the user is logged in, if not then redirect him to login page
 // if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 //     header("location: index.php");
@@ -29,28 +29,9 @@ require_once 'functions.php';
     <?php include 'menu.php'; ?>
     <div id="content" class="bg">
         <div class="container">
-            <div class="games">
-                <h1>Game List</h1>
-                <?php
-                // Show games dynamically
-                    $games = getGames();
-                    foreach($games as $game) {
-                        echo '<div class="item">
-                            <a href="gameOptions.php?game='.$game.'">
-                                <img src="games/'.$game.'/icon.png">
-                            </a>
-                        </div>';
-                    }
-                ?>
-            </div>
             
         </div>
     </div>
     <?php include 'footer.php'; ?> 
 </body>
-<script type="text/javascript">
-    $(document).ready(function(){
-         $('#myid').html(session_id());
-    }
-</script>
 </html>

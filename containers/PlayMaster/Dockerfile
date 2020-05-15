@@ -16,7 +16,7 @@ WORKDIR /usr/src/server
 COPY server/ .
 
 
-EXPOSE 8080
-EXPOSE 1337
+# EXPOSE 8080
+# EXPOSE 1337
 
-ENTRYPOINT node server.js 8080 1337
+ENTRYPOINT node server.js 8080 $GAME_PORT

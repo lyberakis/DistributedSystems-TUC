@@ -43,4 +43,21 @@ function callAPI($method, $url, $data, $header){
 
    return $result;
 }
+
+
+function getGames(){
+  $list = array();
+  if ($handle = opendir('./games')) {
+    while (false !== ($entry = readdir($handle))) {
+
+      if ($entry != "." && $entry != "..") {
+
+        array_push($list, $entry);
+      }
+    }
+    closedir($handle);
+  }
+
+  return $list;
+}
 ?>
