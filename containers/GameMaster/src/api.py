@@ -13,7 +13,8 @@ api = Api(app)
 
 myclient = mongo.createClient()
 mydb = myclient["games"]
-pr = mydb["inprogress"]
+prog = mydb["inprogress"]
+compl = mydb["completed"]
 
 mydb2 = myclient["tournaments"]
 tr = mydb2["pending"]#game--id--pop--name
@@ -49,7 +50,7 @@ class Tournament(Resource):
             x['connected']=connected[i]
             i+=1
         jsonTournaments=JSONEncoder().encode(tournaments)
-        return jsonTournaments, 200#for each Tournament name--id--pop--connected
+        return jsonTournaments, 201#for each Tournament name--id--pop--connected
 
     def delete(self):
         x=pltr.delete_many({})
@@ -70,7 +71,25 @@ class Tournament(Resource):
             return '', 201
         else:
             return '', 400
-        #return 201--400#jsonify(u=un, p=pw)
+
+class Games(Resource):
+    def get(self):
+        args = request.args
+        player = str(args['player'])
+        i=0
+        games = []
+        for x in compl.find():
+            if player['token']==x["players"][0] || player['token']==x["players"][1]:
+                games.append(x)
+
+        jsonGames=JSONEncoder().encode(games)
+        return jsonGames, 201
+
+class Spectator(Resource):
+    def get(self):
+        args = request.args
+        jsonGames=JSONEncoder().encode(prog.find())
+        return jsonGames, 201
 
 # class Score(Resource):
 #     def get(self):
@@ -80,6 +99,8 @@ class Tournament(Resource):
 
 
 api.add_resource(Tournament, '/tournament') # Route_1
+api.add_resource(Games, '/games') # Route_2
+api.add_resource(Spectator, '/spectator') # Route_3
 # api.add_resource(Tracks, '/tracks') # Route_2
 # api.add_resource(Employees_Name, '/employees/<employee_id>') # Route_3
 
