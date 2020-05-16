@@ -44,7 +44,7 @@ function callAPI($method, $url, $data, $header){
    return $result;
 }
 
-
+// Get the list of available games
 function getGames(){
   $list = array();
   if ($handle = opendir('./games')) {
@@ -59,5 +59,27 @@ function getGames(){
   }
 
   return $list;
+}
+
+function unzipGame($file){
+  // get the absolute path to $file
+  $path = pathinfo(realpath($file), PATHINFO_DIRNAME);
+
+  $zip = new ZipArchive;
+  $res = $zip->open($file);
+  if ($res === TRUE) {
+    // extract it to the path we determined above
+    $zip->extractTo($path);
+    $zip->close();
+
+    if (!unlink($file)) {  
+      return "$file extracted to $path and not deleted!";  
+    }  
+    else {  
+      return "$file extracted to $path and deleted!";  
+    }
+  } else {
+    return "I couldn't open $file";
+  }
 }
 ?>
