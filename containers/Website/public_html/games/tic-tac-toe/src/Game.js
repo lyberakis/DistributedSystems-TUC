@@ -124,18 +124,18 @@ class Game extends React.Component {
 		}
 	}
 	
-	// Setup the `beforeunload` event listener
-	setupBeforeUnloadListener() {
-	    window.addEventListener("beforeunload", (ev) => {
-	        ev.preventDefault();
-	        return 'Are you sure you want to leave?';
-	    });
-	}
+	// // Setup the `beforeunload` event listener
+	// setupBeforeUnloadListener() {
+	//     window.addEventListener("beforeunload", (ev) => {
+	//         ev.preventDefault();
+	//         return 'Are you sure you want to leave?';
+	//     });
+	// }
 
-	componentDidMount() {
-        // Activate the event listener
-        this.setupBeforeUnloadListener();
-    }
+	// componentDidMount() {
+ //        // Activate the event listener
+ //        this.setupBeforeUnloadListener();
+ //    }
 
 	render() {
 		let winner = condition.calculateWinner(this.state.squares);
