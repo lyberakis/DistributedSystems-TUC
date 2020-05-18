@@ -26,20 +26,9 @@
             </div>
           </div>
         </div>
-        <div class="c-card">
-          <div class="c-card__body">
-            <div class="u-text--center" id="winner"></div>
-          </div>
-        </div>
       </div>
       <div class="l-grid__item">
         <div class="c-card">
-          <div class="c-card__header">
-            <h3>Received Kudos</h3>
-            <select class="c-select">
-              <option selected="selected">Sunday, Feb. 23 - Sunday, Feb. 30</option>
-            </select>
-          </div>
           <div class="c-card__body">
             <ul class="c-list" id="list">
               <li class="c-list__item">

@@ -11,8 +11,12 @@ $email_th = htmlspecialchars($_SESSION["email"]);
 <div id="header">
     <ul class="topnav">
         <li><a class="active" href="portal.php">Board Games</a></li>
-        <li><a href="scores.php">Scores</a></li>
-        <li><a href="leaderboard.php">Leader Board</a></li>
+        <li class="dropdown"><a class="dropbtn">Scores</a>
+            <div class="dropdown-content">
+                <a href="practiceScores.php">Practice</a>
+                <a href="tournamentScores.php">Tournament</a>
+            </div>
+        </li>
         <li><a href="tournament.php">Official Panel</a></li>
         <li><a href="admin.php">Admin Panel</a></li>
         <li style="float:right" class="dropdown">
