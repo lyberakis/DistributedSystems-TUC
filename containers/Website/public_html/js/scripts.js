@@ -78,12 +78,12 @@ function elementHandler () {
     }
 }
 async function redirect(url) {
-    await timer(10000);
+    await timer(5000);
     window.location.href = url;
 }
 
 
-
+// Check the game progess and redirect to next round or exit
 function checkState () {
     var total_el = document.getElementById("totalRounds");
     var current_el = document.getElementById("curRound");
@@ -109,4 +109,22 @@ function checkState () {
     console.log(url);
     redirect(url);
 
+}
+var loaded = false
+window.onbeforeunload = function() {
+    if (window.location.pathname == '/gameLoading.php' && window.value != 1) {
+      return "Are you sure you want to leave this page? You will automatically lose!";
+    }else if (window.location.pathname == '/gameBoard.php') {
+      //check if the game is tournament play
+      var rounds = document.getElementById("totalRounds");
+
+      //check is game is in progress
+      var iframe = document.getElementById("gameFrame");
+      var container = iframe.contentWindow.document.getElementById("endstate")
+      var endgame = container.innerHTML;
+
+      if (endgame == '' || total_el != null) {
+        return "Are you sure you want to leave this page? You will automatically lose!";
+      }
+    }
 }

@@ -88,10 +88,12 @@ if (isset($_GET['game'])) {
         <?php include 'footer.php'; ?> 
     </body>
     <script type="text/javascript">
+        window.value=0;
         $('#myid').html(session_id());
         $.ajax({
             url: 'checkGameLoad.php?id='+session_id(),
             success: function(data) {
+                window.value=1;  
                 window.location.replace("gameBoard.php");   
             }
         })
