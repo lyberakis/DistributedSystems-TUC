@@ -2,7 +2,7 @@
 // Initialize the session
 if (!isset($_SESSION)) {
     session_start();
-    $_SESSION["token"] = rand(0, 10005);
+    $_SESSION["token"] = 'a'.rand(0, 10005);
 }
 $_SESSION['gm'] = '';
 $_SESSION['pm'] = '';

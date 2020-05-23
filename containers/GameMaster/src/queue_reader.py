@@ -90,6 +90,7 @@ def tournament(record):
 	
 	checkPlayer=False
 	for x in pltr.find():
+		# log.info(f'{x} from loop1')
 		if record['token']==x['token']:
 			checkPlayer=True
 

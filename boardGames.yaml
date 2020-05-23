@@ -1,16 +1,16 @@
 version: "3.7"
 services:
-  # website:
-  #   build: './containers/Website'
-  #   image: website
-  #   volumes:
-  #     - ./containers/Website/public_html:/var/www/html/
-  #   ports:
-  #     - "8089:80"
-  #   networks:
-  #     - games_net
-  #   depends_on:
-  #     - kafka
+  website:
+    build: './containers/Website'
+    image: website
+    volumes:
+      - ./containers/Website/public_html:/var/www/html/
+    ports:
+      - "8089:80"
+    networks:
+      - games_net
+    depends_on:
+      - kafka
   playmaster:
     build: ./containers/PlayMaster
     image: playmaster
@@ -23,16 +23,16 @@ services:
       - GAME_PORT=1337
     depends_on:
       - kafka
-  generator:
-    build: ./containers/generator
-    image: generator
-    networks:
-      - games_net
-    volumes:
-      - ./containers/generator/logs:/etc/logs
-    depends_on:
-      - kafka
-      - playmaster
+  # generator:
+  #   build: ./containers/generator
+  #   image: generator
+  #   networks:
+  #     - games_net
+  #   volumes:
+  #     - ./containers/generator/logs:/etc/logs
+  #   depends_on:
+  #     - kafka
+  #     - playmaster
   zookeeper:
     image: zookeeper:3.6.0
     ports:

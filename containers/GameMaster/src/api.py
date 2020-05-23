@@ -50,7 +50,7 @@ class Tournament(Resource):
             x['connected']=connected[i]
             i+=1
         jsonTournaments=JSONEncoder().encode(tournaments)
-        return jsonTournaments, 201#for each Tournament name--id--pop--connected
+        return jsonTournaments, 200#for each Tournament name--id--pop--connected
 
     def delete(self):
         x=pltr.delete_many({})
@@ -79,17 +79,17 @@ class Games(Resource):
         i=0
         games = []
         for x in compl.find():
-            if player['token']==x["players"][0] || player['token']==x["players"][1]:
+            if player['token']==x["players"][0] or player['token']==x["players"][1]:
                 games.append(x)
 
         jsonGames=JSONEncoder().encode(games)
-        return jsonGames, 201
+        return jsonGames, 200
 
 class Spectator(Resource):
     def get(self):
         args = request.args
         jsonGames=JSONEncoder().encode(prog.find())
-        return jsonGames, 201
+        return jsonGames, 200
 
 # class Score(Resource):
 #     def get(self):

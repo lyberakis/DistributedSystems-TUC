@@ -44,8 +44,8 @@ def handleScore(consumer):
 
 		tourID=None
 		for y in pltr.find():
+			log.info(f'{y} from search in player tour')
 			if y['token']==record['players'][0]:
-				log.info(y)
 				tourID=y['id']
 				break
 
@@ -56,7 +56,9 @@ def handleScore(consumer):
 		elif record['winner'] is not None:
 			myquery = { "roundID": record['roundID'] }
 			prog.delete_one(myquery)
+			log.info(f"{record} from reassign")
 			for y in inp.find():
+				log.info(f"{y} from searching")
 				if y['id']==tourID:
 					loser=None
 					for z in record['players']:
