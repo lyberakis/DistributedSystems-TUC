@@ -1,0 +1,34 @@
+version: "3.7"
+services:
+  auth_service:
+    build: ./containers/AuthService
+    image: auth_service
+    ports:
+      - 5010:5010
+    networks:
+      - sql_net
+      # - games_net
+    volumes:
+      - ./containers/AuthService/logs:/etc/logs
+  mysql:
+    image: mysql:5.7
+    restart: always
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysqldb_data_container:/var/lib/mysql
+      - ./containers/AuthService/sql_init:/docker-entrypoint-initdb.d
+    networks:
+      - sql_net
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_USER: myuser
+      MYSQL_PASSWORD: myuserpassword
+networks:
+  sql_net:
+  # games_net:
+  #   driver: bridge
+  #   external: true
+  #   attachable: true
+volumes:
+  mysqldb_data_container:

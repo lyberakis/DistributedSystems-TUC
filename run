@@ -21,6 +21,10 @@ elif [ "$1" == "master up" ]; then
 elif [ "$1" == "master down" ]; then
 	docker-compose -f gameMaster.yaml down
 	docker network rm games_net nosql_net
+elif [ "$1" == "auth up" ]; then
+	docker-compose -f auth.yaml up --build -d 
+elif [ "$1" == "auth down" ]; then
+	docker-compose -f auth.yaml down
 elif [ "$1" == "all up" ]; then
 	docker network create \
 	  --driver=bridge \

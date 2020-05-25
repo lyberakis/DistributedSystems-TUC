@@ -58,7 +58,7 @@ def handleScore(consumer):
 			prog.delete_one(myquery)
 			log.info(f"{record} from reassign")
 			for y in inp.find():
-				log.info(f"{y} from searching")
+				# log.info(f"{y} from searching")
 				if y['id']==tourID:
 					loser=None
 					for z in record['players']:

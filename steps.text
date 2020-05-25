@@ -7,3 +7,5 @@
 
 Για logs σε gamemaster ==> docker-compose -f gameMaster.yaml logs gamemaster
 Για logs σε οποιοδηποτε αλλο ==> docker-compose -f boardGames.yaml logs playmaster
+
+Για logs σε auth ==> docker-compose -f auth.yaml logs auth_service
