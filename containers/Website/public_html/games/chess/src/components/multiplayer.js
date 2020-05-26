@@ -59,14 +59,14 @@ export function getArgumenets() {
   	let url = new URL(url_string);
 
   	let host = url.hostname;
-  	let playmanster = url.searchParams.get("pm");
+  	let playmaster = url.searchParams.get("pm");
   	let gamemaster = url.searchParams.get("gm");
   	let token = url.searchParams.get("token");
 
   	let args = {
   		'host': host,
   		'token': token,
-  		'playmanster' : playmanster,
+  		'playmaster' : playmaster,
   		'gamemaster' : gamemaster,
   	};
 

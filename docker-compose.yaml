@@ -35,19 +35,19 @@ services:
     depends_on:
       - gamemaster
       - kafka
-  playmaster2:
-    build: ./containers/PlayMaster
-    image: playmaster
-    networks:
-      - games_net
-      - nosql_net
-    ports:
-      - 1338:1338
-    environment:
-      - GAME_PORT=1338
-    depends_on:
-      - gamemaster
-      - kafka
+  # playmaster2:
+  #   build: ./containers/PlayMaster
+  #   image: playmaster
+  #   networks:
+  #     - games_net
+  #     - nosql_net
+  #   ports:
+  #     - 1338:1338
+  #   environment:
+  #     - GAME_PORT=1338
+  #   depends_on:
+  #     - gamemaster
+  #     - kafka
   # generator:
   #   build: ./containers/generator
   #   image: generator
