@@ -1,25 +1,23 @@
-CREATE DATABASE IF NOT EXISTS mydb;
-USE mydb;
+SET GLOBAL event_scheduler=ON;
 
-CREATE TABLE IF NOT EXISTS Teachers (
-    ID varchar(255) NOT NULL,
-    NAME varchar(255),
-    SURNAME varchar(255),
-    USERNAME varchar(255) NOT NULL UNIQUE,
-    PASSWORD varchar(255) NOT NULL,
-    EMAIL varchar(255),
-    PRIMARY KEY (ID)
+CREATE DATABASE IF NOT EXISTS auth;
+USE auth;
+
+CREATE TABLE IF NOT EXISTS users (
+    username varchar(50) PRIMARY KEY,
+    password varchar(200) NOT NULL,
+    email varchar(50),
+    role varchar(8) CHECK (role='player' OR role='official' OR role='admin')
 );
 
-CREATE TABLE IF NOT EXISTS Students (
-	ID varchar(255) NOT NULL,
-	NAME varchar(255),
-	SURNAME varchar(255),
-	FATHERNAME varchar(255),
-	GRADE real,
-	MOBILENUMBER varchar(255),
-	Birthday date,
-	PRIMARY KEY (ID)
+CREATE TABLE IF NOT EXISTS tokens (
+    username varchar(50),
+    token varchar(50) PRIMARY KEY,
+    creation date,
+    FOREIGN KEY (username) REFERENCES users(username)
 );
 
--- INSERT INTO `Teachers` (`ID`, `NAME`, `SURNAME`, `USERNAME`, `PASSWORD`, `EMAIL`) VALUES ('456457', 'Panagiotis', 'Giannakopoulos', 'pgiannakopoulos', '12345678', 'panagiotis@email.com')
+CREATE EVENT token_expiration
+	ON SCHEDULE EVERY 1 DAY
+	DO
+		DELETE FROM tokens WHERE DATEDIFF(creation, GETDATE())>7;
