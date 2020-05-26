@@ -1,5 +1,6 @@
 from utils import kafkaDrivers as kafka
 from utils import log_settings
+from utils import playmasterCalls as pmCalls
 import logging as log
 import json
 import pymongo
@@ -94,6 +95,7 @@ def handleScore(consumer):
 							inp.update_one(old, new)
 					break
 		else:#reassign the game with the same players
+			ports = pmCalls.findPlayMaster(myclient)
 			pair = dict()
 			pair["type"] = "active"
 			pair["game"] = record['game']
@@ -102,35 +104,18 @@ def handleScore(consumer):
 			for z in record['players']:
 				pair["players"].append(z)
 			pair['gm'] = 9000
-			pair['pm'] = 1337
-			status = assignPlay(pair)
+			pair['pm'] = int(ports['game_port'])
+			status = pmCalls.assignPlay(pair,ports['cmd_port'])
 			log.info(f'{status} from PM')
 
 			# Respond to the webserver
 			response = dict()
 			response['gm'] = 9000
-			response['pm'] = 1337
+			response['pm'] = int(ports['game_port'])
 			response['tokens'] = pair["players"]
 			producer.send('output', json.dumps(pair))
 
-def findPlayMaster():
-	ports = {}
-	ports['server'] = 1337
-	ports['gate'] = 8080
-
-	return ports
-
-def assignPlay(pair):
-	port = findPlayMaster()
-
-	url = 'http://playmaster:'+str(port['gate'])
-	headers = {'Content-Type': 'application/json'}
-	data = json.dumps(pair)
-
-	r = requests.post(url = url, data = data, headers=headers)
-	
-	return r.status_code
-			
+		
 
 while True:
 	handleScore(consumer)	

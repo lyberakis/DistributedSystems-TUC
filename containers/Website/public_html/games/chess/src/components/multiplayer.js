@@ -214,8 +214,7 @@ export function setListeners(obj){
 
     let game = 'chess';
     let master = obj.state.host + ':' + obj.state.gamemaster
-    let url = 'http://'+master+'?'+'token='+obj.state.token+'&game='+game;
-
+        let url = 'http://'+master+'?'+'token='+obj.state.token+'&game='+game+'&roundID='+ obj.state.roundID;
     xhr.open('GET', url);
     xhr.send();
   }); 

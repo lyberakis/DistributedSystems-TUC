@@ -1,6 +1,7 @@
 from utils import kafkaDrivers as kafka
 from utils import mongoDrivers as mongo
 from utils import log_settings
+from utils import playmasterCalls as pmCalls
 import logging as log
 import uuid 
 import json
@@ -34,24 +35,6 @@ def initPlays():
 
 	return plays
 
-def findPlayMaster():
-	ports = {}
-	ports['server'] = 1337
-	ports['gate'] = 8080
-
-	return ports
-
-
-def assignPlay(pair):
-	port = findPlayMaster()
-
-	url = 'http://playmaster:'+str(port['gate'])
-	headers = {'Content-Type': 'application/json'}
-	data = json.dumps(pair)
-
-	r = requests.post(url = url, data = data, headers=headers)
-	
-	return r.status_code
 
 def practice(record):
 	game = record['game']
@@ -59,6 +42,7 @@ def practice(record):
 
 	# Check if there are enough players for the round
 	if len(plays[game]['queue']) == plays[game]['members']:
+		ports = pmCalls.findPlayMaster(myclient)
 
 		# Assign the game to playmaster
 		pair = dict()
@@ -67,14 +51,14 @@ def practice(record):
 		pair["roundID"] = uuid.uuid4().hex
 		pair["players"] = plays[game]['queue'].copy()
 		pair['gm'] = 9000
-		pair['pm'] = 1337
-		status = assignPlay(pair)
+		pair['pm'] = int(ports['game_port'])
+		status = pmCalls.assignPlay(pair, ports['cmd_port'])
 		log.info(f'{status} from PM')
 
 		# Respond to the webserver
 		response = dict()
 		response['gm'] = 9000
-		response['pm'] = 1337
+		response['pm'] = int(ports['game_port'])
 		response['tokens'] = plays[game]['queue']
 		producer.send('output', json.dumps(pair))
 
@@ -172,6 +156,7 @@ def tournament(record):
 def assignTournamentGames(queue, game):
 	j=0
 	while j<len(queue):
+		ports = pmCalls.findPlayMaster(myclient)
 		pair = dict()
 		pair["type"] = "active"
 		pair["game"] = game
@@ -182,13 +167,13 @@ def assignTournamentGames(queue, game):
 		pair["players"].append(queue[j])
 		j+=1
 		pair['gm'] = 9000
-		pair['pm'] = 1337
-		status = assignPlay(pair)
+		pair['pm'] = int(ports['game_port'])
+		status = pmCalls.assignPlay(pair,ports['cmd_port'])
 		log.info(f'{status} from PM')
 
 		response = dict()
 		response['gm'] = 9000
-		response['pm'] = 1337
+		response['pm'] = int(ports['game_port'])
 		response['tokens'] = pair["players"]
 		producer.send('output', json.dumps(pair))
 
