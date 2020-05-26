@@ -16,14 +16,14 @@ producer = kafka.createProducer()
 consumer.subscribe(['scores'])
 
 try:
-    # try to instantiate a client instance
-    myclient = pymongo.MongoClient(
-        host = [ 'mongodb:27017' ],
-        serverSelectionTimeoutMS = 3000, # 3 second timeout
-        username = "root",
-        password = "rootpassword",
-    )
-    log.info("db connection established")
+	# try to instantiate a client instance
+	myclient = pymongo.MongoClient(
+		host = [ 'mongodb:27017' ],
+		serverSelectionTimeoutMS = 3000, # 3 second timeout
+		username = "root",
+		password = "rootpassword",
+	)
+	log.info("db connection established")
 except:
 	log.exception("db connection")
 
@@ -95,7 +95,7 @@ def handleScore(consumer):
 							inp.update_one(old, new)
 					break
 		else:#reassign the game with the same players
-			ports = pmCalls.findPlayMaster(myclient)
+			address = pmCalls.findPlayMaster(myclient)
 			pair = dict()
 			pair["type"] = "active"
 			pair["game"] = record['game']
@@ -104,14 +104,14 @@ def handleScore(consumer):
 			for z in record['players']:
 				pair["players"].append(z)
 			pair['gm'] = 9000
-			pair['pm'] = int(ports['game_port'])
-			status = pmCalls.assignPlay(pair,ports['cmd_port'])
+			pair['pm'] = int(address['game_port'])
+			status = pmCalls.assignPlay(pair, address['hostname'], address['cmd_port'])
 			log.info(f'{status} from PM')
 
 			# Respond to the webserver
 			response = dict()
 			response['gm'] = 9000
-			response['pm'] = int(ports['game_port'])
+			response['pm'] = int(address['game_port'])
 			response['tokens'] = pair["players"]
 			producer.send('output', json.dumps(pair))
 

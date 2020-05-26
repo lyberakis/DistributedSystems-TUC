@@ -9,8 +9,6 @@ services:
       - "8089:80"
     networks:
       - games_net
-    depends_on:
-      - kafka
   gamemaster:
     build: ./containers/GameMaster
     image: gamemaster
@@ -32,9 +30,21 @@ services:
       - nosql_net
     ports:
       - 1337:1337
-      - 8080:8080
     environment:
       - GAME_PORT=1337
+    depends_on:
+      - gamemaster
+      - kafka
+  playmaster2:
+    build: ./containers/PlayMaster
+    image: playmaster
+    networks:
+      - games_net
+      - nosql_net
+    ports:
+      - 1338:1338
+    environment:
+      - GAME_PORT=1338
     depends_on:
       - gamemaster
       - kafka

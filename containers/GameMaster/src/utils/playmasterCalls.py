@@ -17,18 +17,19 @@ def findPlayMaster(myclient):
 
 	pos = random.randint(0,len(mylist)-1)
 
-	ports = {}
-	ports['game_port'] = mylist[pos]['game_port']
-	ports['cmd_port'] = mylist[pos]['cmd_port']
+	address = {}
+	address['hostname'] = mylist[pos]['hostname']
+	address['game_port'] = mylist[pos]['game_port']
+	address['cmd_port'] = mylist[pos]['cmd_port']
 
-	log.info(ports)
+	log.info(address)
 
-	return ports
+	return address
 
 
-def assignPlay(pair, port):
+def assignPlay(pair, hostname, port):
 
-	url = 'http://playmaster:'+str(port)
+	url = 'http://'+str(hostname)+':'+str(port)
 	headers = {'Content-Type': 'application/json'}
 	data = json.dumps(pair)
 

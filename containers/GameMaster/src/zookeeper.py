@@ -15,6 +15,7 @@ def saveToDB(children):
 		log.info(f"Data: {mydata}")
 
 		element = {
+			'hostname': child,
 			'game_port' : mydata['game_port'],
 			'cmd_port' : mydata['cmd_port']
 		}
