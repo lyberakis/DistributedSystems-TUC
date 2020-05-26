@@ -23,7 +23,7 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: rootpassword
       MYSQL_USER: myuser
-      MYSQL_PASSWORD: myuserpassword
+      MYSQL_PASSWORD: rootpassword
 networks:
   sql_net:
   # games_net:
