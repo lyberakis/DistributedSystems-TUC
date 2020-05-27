@@ -6,7 +6,9 @@ from utils import log_settings
 import logging as log
 import uuid
 import json
+from bson.json_util import dumps,loads
 from bson import ObjectId
+
 
 app = Flask(__name__)
 api = Api(app)
@@ -88,8 +90,11 @@ class Games(Resource):
 class Spectator(Resource):
     def get(self):
         args = request.args
-        jsonGames=JSONEncoder().encode(prog.find())
-        return jsonGames, 200
+        query = {'game' : str(args['game'])}
+        games = dumps(prog.find(query))
+        # jsonGames=JSONEncoder().encode(games)
+
+        return loads(dumps(games)), 200
 
 # class Score(Resource):
 #     def get(self):

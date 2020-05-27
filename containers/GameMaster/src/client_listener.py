@@ -6,6 +6,7 @@ from utils import playmasterCalls as pmCalls
 import logging as log
 from utils import mongoDrivers as mongo
 import json
+import signal
 import time
 
 api = Flask(__name__)
@@ -18,7 +19,8 @@ players = mydb["inprogress"]
 recovery = {}
 @api.route('/client',methods=['GET'])
 def get():
-	time.sleep(1)
+	time.sleep(10)
+	log.info(f'Hello from recovery')
 	global recovery
 	args = request.args
 	
@@ -35,38 +37,73 @@ def get():
 	log.info(f'Client request received with {roundID}, {token}, {game}')
 	# Check if the roundID is save locally
 	if roundID in recovery:
-		log.info('Client1')
-		server = {
-			'playmaster' : recovery[roundID]['game_port']
-		}
-		recovery[roundID]['connected'] += 1;
+		# check if we have a spectator
+		if token not in recovery[roundID]['players']:
+			tokens = []
+			tokens.append(token)
+			pair = dict()
+			pair["spectator"] = True
+			pair["game"] = recovery[roundID]['game']
+			pair["roundID"] = roundID
+			pair["players"] = tokens
+			pair['gm'] = 9000
+			pair['pm'] = recovery[roundID]['game_port']
+			status = pmCalls.assignPlay(pair, recovery[roundID]['hostname'], recovery[roundID]['cmd_port'])
+			
+			log.info(f'{status} from PM')
+		else:
+			server = {
+				'playmaster' : recovery[roundID]['game_port']
+			}
+		# recovery[roundID]['connected'] += 1;
 
-		if recovery[roundID]['connected'] == recovery[roundID]['total']:
-			del recovery[roundID]
+		# if recovery[roundID]['connected'] == recovery[roundID]['total']:
+		# 	del recovery[roundID]
 	else:
-		log.info('Client2')
 		query = {'roundID':roundID}
 		play = players.find(query)
 		play = play[0]
-		log.info(f'Retrieved play: {play}')
+
 		address = pmCalls.findPlayMaster(myclient)
 		
 		# Assign the game to playmaster
 		pair = dict()
-		pair["type"] = "active"
+		pair["spectator"] = False
 		pair["game"] = game
 		pair["roundID"] = roundID
 		pair["players"] = play['players']
 		pair['gm'] = 9000
-		pair['pm'] = int(address['game_port'])
+		pair['game_port'] = int(address['game_port'])
+		pair['cmd_port'] = int(address['cmd_port'])
+		pair['host'] =  address['hostname']
 		status = pmCalls.assignPlay(pair, address['hostname'], address['cmd_port'])
 		log.info(f'{status} from PM')
 
+		# check if we have a spectator
+		if token not in play['players']:
+			tokens = []
+			tokens.append(token)
+			pair2 = dict()
+			pair2["spectator"] = True
+			pair2["game"] = game
+			pair2["roundID"] = roundID
+			pair2["players"] = tokens
+			pair2['gm'] = 9000
+			pair2['pm'] = int(address['game_port'])
+			status = pmCalls.assignPlay(pair2, address['hostname'], address['cmd_port'])
+			log.info(f'{status} from PM')
+
 		recovery[roundID] = {}
+		recovery[roundID]['game'] = game
 		recovery[roundID]['game_port'] = int(address['game_port'])
-		# recovery[roundID]['cmd_port'] = int(address['cmd_port'])
+		recovery[roundID]['cmd_port'] = int(address['cmd_port'])
+		recovery[roundID]['hostname'] = address['hostname']
+		recovery[roundID]['players'] = play['players']
 		recovery[roundID]['total'] = len(play['players'])
 		recovery[roundID]['connected'] = 0
+
+		players.delete_one(query)
+		players.insert_one(pair)
 
 		server = {
 			'playmaster' : int(address['game_port'])
@@ -77,8 +114,12 @@ def get():
 	log.info(server)
 	return json.dumps(server), 200
 
-# api.add_resource(Client, '/client')
+def handler(signum, stack):
+	global recovery
+	recovery.clear()
+	log.info('Cleaning recovery')
+	signal.alarm(60)
 
 if __name__ == '__main__':
-	  api.run(host='0.0.0.0', port=9000) 
+	api.run(host='0.0.0.0', port=9000) 
 	

@@ -37,12 +37,12 @@ io.on('connection', (socket) => {
 		let roundID = pending[token]['roundID'];
 		let tournament_id = pending[token]['tournament_id'];
 		let game = pending[token]['game'];
-		delete pending[token]
+		
 
 		//check if the game is initilized
 		if (roundID in games) {
 			//Configure second player's connection
-
+			delete pending[token]
 			games[roundID]['players'].push({
 				'token': token,
 				'socket': socket
@@ -241,14 +241,15 @@ app.post('/', function(request, response){
 
   if (!spectatorMode) {
   	console.log("Received active game")
-	let p1 = players[0];
-	let p2 = players[1];
-	pending[p1] = {
-	'roundID' : roundID,
-	'game' : game
-	};
-	pending[p2] = pending[p1];
 
+	pending[players[0]] = {
+		'roundID' : roundID,
+		'game' : game
+	};
+	
+	for (var i = 1; i < players.length; i++) {
+		pending[players[i]] = pending[players[0]];
+	}
 	gameCounter+=1;
 
 	// update the state to zookeeper
@@ -256,6 +257,7 @@ app.post('/', function(request, response){
   }else{
   	spectators[players[0]] = roundID;
   }
+  console.log(spectatorMode)
 
  
   response.writeHead(200);
