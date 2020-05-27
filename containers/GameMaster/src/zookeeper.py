@@ -62,4 +62,4 @@ saveToDB(children)
 
 
 while True:
-	time.sleep(1)
+	pass

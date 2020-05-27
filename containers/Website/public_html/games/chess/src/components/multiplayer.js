@@ -181,15 +181,15 @@ export function setListeners(obj){
   //Handler for server disconnection
   obj.state.socket.on('disconnect', board => {
 
-      //if you never connected or the game is completed, return
-      if (obj.state.connectionStatus < 0 || obj.state.connectionStatus > 2) {
-        return;
-      }
+    //if you never connected or the game is completed, return
+    if (obj.state.connectionStatus < 0 || obj.state.connectionStatus > 2) {
+      return;
+    }
 
     obj.state.socket.disconnect()
 
     obj.setState({
-      connectionStatus: 4,
+      connectionStatus: -2,
     })
     
     //Create a request to GameMaster
@@ -202,7 +202,7 @@ export function setListeners(obj){
         //Check if the GameMaster accepted the request
         if (xhr.connectionStatus === 200) {  
           let respone = JSON.parse(xhr.responseText);
-          obj.reconnect(respone['playmaster']);
+          reconnect(obj, respone['playmaster']);
         }else if(xhr.connectionStatus === 403){
           obj.setState({
             connectionStatus: -3,
@@ -213,10 +213,16 @@ export function setListeners(obj){
     }
 
     let game = 'chess';
-    let master = obj.state.host + ':' + obj.state.gamemaster
-        let url = 'http://'+master+'?'+'token='+obj.state.token+'&game='+game+'&roundID='+ obj.state.roundID;
-    xhr.open('GET', url);
-    xhr.send();
+    let master = obj.state.host + ':' + obj.state.gamemaster+'/client';
+    let url = 'http://'+master+'?'+'token='+obj.state.token+'&game='+game+'&roundID='+ obj.state.roundID;
+    
+    const delay = (ms, cb) => setTimeout(cb, ms);
+    
+    delay(getRndInteger(1,300)*100, () => {
+      xhr.open('GET', url);
+      xhr.setRequestHeader('Access-Control-Allow-Origin', '*');
+      xhr.send();
+    })
   }); 
 
   //The game is over from the server's side
@@ -229,20 +235,24 @@ export function setListeners(obj){
 
 }
 
+function getRndInteger(min, max) {
+  return Math.floor(Math.random() * (max - min + 1) ) + min;
+}
+
 //Establish a new connections
 export function reconnect(obj, port){
   console.log('reconnecting...')
-  let playmaster = this.state.host + ':' + port;
-  let token = this.state.token;
+  let playmaster = obj.state.host + ':' + port;
+  let token = obj.state.token;
   var data = connect(playmaster,token)
 
   obj.setState({
     socket: data['socket'],
-    connectionStatus: data['connectionStatus'],
+    status: data['status'],
   });
 
   console.log(data['socket']);
-  obj.setListeners();
+  setListeners(obj);
 }
 
 function stringsToClasses(squares){
