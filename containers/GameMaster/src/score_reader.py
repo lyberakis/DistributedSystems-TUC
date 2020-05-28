@@ -104,7 +104,9 @@ def handleScore(consumer):
 			for z in record['players']:
 				pair["players"].append(z)
 			pair['gm'] = 9000
-			pair['pm'] = int(address['game_port'])
+			pair['game_port'] = int(address['game_port'])
+			pair['cmd_port'] = int(address['cmd_port'])
+			pair['host'] = address['hostname']
 			status = pmCalls.assignPlay(pair, address['hostname'], address['cmd_port'])
 			log.info(f'{status} from PM')
 

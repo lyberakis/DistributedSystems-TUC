@@ -69,17 +69,18 @@ $practice = $dest.'?tournament=null&spectator=false&game='.$game;
                     <div class="section">
                         <?php
                             // Show all tournaments in the database
-                            $get_data = callAPI('GET', $gamemaster.'/games?game='.$game, false, false);
+                            $get_data = callAPI('GET', $gamemaster.'/spectator?game='.$game, false, false);
                             $response = json_decode($get_data, true);
+                            $response = json_decode($response, true) ;
 
                             if ($httpcode == 200) {
                                 if (count($response) == 0) {
                                     echo 'No available plays found.';
                                 }
                                 foreach ($response as $round){ 
-                                    $req = $dest.'?tournament=null&spectator=true$round='.$round['id'];
-                                    $text = $round['id'];
-                                    echo '<button class="btn-new" onclick="'.$req.'">'.$text.'</button>';
+                                    $req = $dest.'?tournament=null&spectator=true&roundID='.$round['roundID'].'&game='.$game;;
+                                    $text = join(" vs ",$round['players']);
+                                    echo '<button class="btn-new" onclick="window.location='."'".$req."'".'">'.$text.'</button>';
                                 }
                             }else{
                                 echo "Error";

@@ -35,6 +35,36 @@ def initPlays():
 
 	return plays
 
+def spectator(record):
+	query = {'roundID':record['roundID']}
+	play = pr.find(query)
+	play = play[0]
+
+	token = []
+	token.append(record['token'])
+
+	# Assign the game to playmaster
+	pair = dict()
+	pair["spectator"] = True
+	pair["game"] = record['game']
+	pair["roundID"] = record['roundID']
+	pair["players"] = token
+	pair['gm'] = 9000
+	pair['game_port'] = play['game_port']
+	pair['cmd_port'] = play['cmd_port']
+	pair['host'] =  play['host']
+	status = pmCalls.assignPlay(pair, play['host'], play['cmd_port'])
+	log.info(f'{status} from PM')
+
+	
+	# Respond to the webserver
+	response = dict()
+	response['gm'] = 9000
+	response['pm'] = play['game_port']
+	response['tokens'] = token
+
+	producer.send('output', json.dumps(pair))
+
 
 def practice(record):
 	game = record['game']
@@ -46,12 +76,14 @@ def practice(record):
 
 		# Assign the game to playmaster
 		pair = dict()
-		pair["type"] = "active"
+		pair["spectator"] = False
 		pair["game"] = game
 		pair["roundID"] = uuid.uuid4().hex
 		pair["players"] = plays[game]['queue'].copy()
 		pair['gm'] = 9000
-		pair['pm'] = int(address['game_port'])
+		pair['game_port'] = int(address['game_port'])
+		pair['cmd_port'] = int(address['cmd_port'])
+		pair['host'] = address['hostname']
 		status = pmCalls.assignPlay(pair, address['hostname'], address['cmd_port'])
 		log.info(f'{status} from PM')
 
@@ -158,7 +190,7 @@ def assignTournamentGames(queue, game):
 	while j<len(queue):
 		address = pmCalls.findPlayMaster(myclient)
 		pair = dict()
-		pair["type"] = "active"
+		pair["spectator"] = False
 		pair["game"] = game
 		pair["roundID"] = uuid.uuid4().hex
 		pair["players"]=list()
@@ -167,7 +199,9 @@ def assignTournamentGames(queue, game):
 		pair["players"].append(queue[j])
 		j+=1
 		pair['gm'] = 9000
-		pair['pm'] = int(address['game_port'])
+		pair['game_port'] = int(address['game_port'])
+		pair['cmd_port'] = int(address['cmd_port'])
+		pair['host'] = address['hostname']
 		status = pmCalls.assignPlay(pair, address['hostname'], address['cmd_port'])
 		log.info(f'{status} from PM')
 
@@ -191,10 +225,13 @@ def readRecords(consumer, producer):
 			log.warning(f'{game} is invalid game!')
 			continue
 
-		if record['tournament'] is None:
-			practice(record)
+		if record['spectator'] == True:
+			spectator(record)
 		else:
-			tournament(record)
+			if record['tournament'] is None:
+				practice(record)
+			else:
+				tournament(record)
 
 		
 tournaments = {};

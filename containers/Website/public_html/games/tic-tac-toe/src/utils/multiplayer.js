@@ -158,7 +158,7 @@ export function setListeners(obj){
   obj.state.socket.on('disconnect', board => {
 
     //if you never connected or the game is completed, return
-    if (obj.state.status < 0 || obj.state.status > 2) {
+    if ((obj.state.status < 0 || obj.state.status > 2) && obj.state.connectionStatus !== 5) {
       return;
     }
 

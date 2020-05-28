@@ -16,7 +16,7 @@ function setGameParam($obj){
 	        foreach($obj->{'players'} as $token) {
 	        	if ($_SESSION['token'] == $token) {
 		        	$_SESSION["gm"] = $obj->{'gm'};
-		        	$_SESSION["pm"] = $obj->{'pm'};
+		        	$_SESSION["pm"] = $obj->{'game_port'};
 		        	$_SESSION["game"] = $obj->{'game'};
 		        	$i = $i + 1;
 		        	//var_dump($_SESSION);
