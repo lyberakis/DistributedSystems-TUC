@@ -3,6 +3,10 @@
 if (!isset($_SESSION)) {
     session_start();
 }
+if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
+    header("location: index.php");
+    exit;
+}
 
 require_once 'config.php';
 require 'vendor/autoload.php';
@@ -20,7 +24,7 @@ $_SESSION["gm"] = $_SESSION["pm"] = '';
 if (isset($_GET['game'])) {
     if (isset($_GET['roundID'])) {
         $play = array(
-            'token' => $_SESSION['token'], 
+            'token' => $_SESSION['username'], 
             'game' => $_GET['game'], 
             'tournament' => $_GET['tournament'] == 'null'? null:$_GET['tournament'] , 
             "spectator" => true,
@@ -28,7 +32,7 @@ if (isset($_GET['game'])) {
         );
     }else{
         $play = array(
-            'token' => $_SESSION['token'], 
+            'token' => $_SESSION['username'], 
             'game' => $_GET['game'], 
             'tournament' => $_GET['tournament'] == 'null'? null:$_GET['tournament'] , 
             "spectator" => false,

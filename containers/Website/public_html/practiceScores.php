@@ -5,17 +5,19 @@ if (!isset($_SESSION)) {
 }
 
 // Check if the user is logged in, if not then redirect him to login page
-// if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
-//     header("location: index.php");
-//     exit;
-// }
+if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
+    header("location: index.php");
+    exit;
+}
+
 require_once "config.php";
 require_once "functions.php";
 
 // Show all student in the database
 $header = array("Authorization: "." ".$_SESSION["token_type"]." ".$_SESSION["access_token"]);
-$get_data = callAPI('GET', $gamemaster.'/scores/practice/'.$_SESSION['token'], $data, false);
+$get_data = callAPI('GET', $gamemaster.'/games?token='.$_SESSION['username'], $data, false);
 $response = json_decode($get_data, true);
+$response = json_decode($response, true);
 ?>
 
 <!DOCTYPE html>
@@ -32,17 +34,18 @@ $response = json_decode($get_data, true);
                     <table>
                         <tr>
                             <th style="width: 40%"><strong>Game</strong></th>
-                            <th style="width: 40%"><strong>Opponent</strong></th>
-                            <th style="width: 20%"><strong>Result</strong></th>
+                            <th style="width: 40%"><strong>Players</strong></th>
+                            <th style="width: 20%"><strong>Winner</strong></th>
                          </tr>
                     <?php
 
                     if ($httpcode == 200) {
-                        foreach ($response['personal'] as $myscores){ 
+                        foreach ($response as $myscores){ 
                             echo "<tr>";
-                                echo '<td style="width: 33%">'.$myscores['game'].'</td>';
-                                echo '<td style="width: 33%">'.$myscores["opponent"].'</td>';
-                                echo '<td style="width: 33%">'.$myscores["result"].'</td>';
+                                echo '<td style="width: 40%">'.$myscores['game'].'</td>';
+                                echo '<td style="width: 40%">'.join(", ",$myscores['players']).'</td>';
+                                $result = $myscores["winner"]== null? 'TIE':$myscores["winner"];
+                                echo '<td style="width: 20%">'.$result.'</td>';
                             echo "</tr>";                    
              
                         }

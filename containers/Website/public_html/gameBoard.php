@@ -5,15 +5,15 @@ if (!isset($_SESSION)) {
 }
 
 // Check if the user is logged in, if not then redirect him to login page
-// if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
-//     header("location: index.php");
-//     exit;
-// }
+if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
+    header("location: index.php");
+    exit;
+}
 
 require_once 'config.php';
 
 $content = '<div id="game_frame">
-<iframe onload="onMyFrameLoad(this)" id="gameFrame" src="games/'.$_SESSION["game"].'/build/index.html?token='.$_SESSION["token"].'&gm='.$_SESSION["gm"].'&pm='.$_SESSION["pm"].'" width="100%" ></iframe> </div>';
+<iframe onload="onMyFrameLoad(this)" id="gameFrame" src="games/'.$_SESSION["game"].'/build/index.html?token='.$_SESSION["username"].'&gm='.$_SESSION["gm"].'&pm='.$_SESSION["pm"].'" width="100%" ></iframe> </div>';
 
  ?>
 

@@ -37,19 +37,19 @@ services:
     depends_on:
       - gamemaster
       - kafka
-  playmaster2:
-    build: ./containers/PlayMaster
-    image: playmaster
-    networks:
-      - games_net
-      - nosql_net
-    ports:
-      - 1338:1338
-    environment:
-      - GAME_PORT=1338
-    depends_on:
-      - gamemaster
-      - kafka
+  # playmaster2:
+  #   build: ./containers/PlayMaster
+  #   image: playmaster
+  #   networks:
+  #     - games_net
+  #     - nosql_net
+  #   ports:
+  #     - 1338:1338
+  #   environment:
+  #     - GAME_PORT=1338
+  #   depends_on:
+  #     - gamemaster
+  #     - kafka
   # generator:
   #   build: ./containers/generator
   #   image: generator
@@ -97,9 +97,36 @@ services:
       - mongodb_data_container:/data/db
     networks:
       - nosql_net
-
+  auth_service:
+    build: ./containers/AuthService
+    image: auth_service
+    ports:
+      - 5010:5010
+    networks:
+      - sql_net
+      - games_net
+    depends_on:
+      - mysql
+    volumes:
+      - ./containers/AuthService/logs:/etc/logs
+  mysql:
+    image: mysql:5.7
+    restart: always
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysqldb_data_container:/var/lib/mysql
+      - ./containers/AuthService/sql_init:/docker-entrypoint-initdb.d
+    networks:
+      - sql_net
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_USER: myuser
+      MYSQL_PASSWORD: rootpassword
 volumes:
   mongodb_data_container:
+  mysqldb_data_container:
 networks:
   games_net:
   nosql_net:
+  sql_net:

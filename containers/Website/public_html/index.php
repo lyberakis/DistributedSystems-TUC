@@ -11,13 +11,13 @@ if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true){
 }
  
 // Include config file
-// require_once "config.php";
+require_once "config.php";
 require_once "functions.php";    //containes the secure_input() function
 
 
 // Define variables and initialize with empty values
 $usernameL = $passwordL = "";
-$username = $password = $password2 = $email = "";
+$username = $password = $password2 = $email = $role= "";
 $err = "";
  
 // Processing form data when form is submitted
@@ -33,52 +33,46 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
         }
         
         // Check if password is empty
-        if(empty(trim($_POST["password"]))){
+        if(empty(trim($_POST["psw"]))){
             $err = "Please enter your password.";
         } else{
-            $passwordL = secure_input($_POST["password"]);
+            $passwordL = secure_input($_POST["psw"]);
         }
         
         // Validate credentials
         if(empty($err)){
-                $get_data = callAPI('GET', $db_service.'/user/'.$usernameL, false, false);
-                if ($get_data) {
-                    $response = json_decode($get_data, true); //When TRUE, returned objects will be converted into associative arrays
+            $user = new stdClass();
+            $user->username = $usernameL;
+            $user->password = $passwordL;
 
-                    // Check if username exists, if yes then verify password
-                    if($response['username']){                    
-                        // password_verify($password, $hashed_password)
-                        if(strcmp($passwordL, $response['password']) == 0){
-                            // Password is correct, so start a new session
-                            session_start();
-                                    
-                            // Store data in session variables
-                            $_SESSION["role"] = $response['role'];
-                            $_SESSION["loggedin"] = true;
-                            $_SESSION["token"] = $response['token'];
-                            $_SESSION["username"] = $response['username']; 
-                            $_SESSION["email"] = $response['email'];                       
-                                    
-                            // Redirect user to welcome page
-                            header("location: portal.php");
-                        } else{
-                        // Display an error message if password is not valid
-                            $err = "The password you entered was not valid.";
-                        }
-                    }else{
-                        // Display an error message if username doesn't exist
-                        $err = "No account found with that username.";
-                    }
-                }else{
-                    $err = "Oops! Something went wrong. Please try again later.";
-                } 
+            $data = json_encode($user);
+            $header = array("Content-Type:application/json", "master_key:".$master_key);
+            $get_data = callAPI('POST', $auth_service.'/validation', $data, $header);
+            $response = json_decode($get_data, true);
+            $response = json_decode($response, true);
+            if($httpcode == 201){                 
+                // Password is correct, so start a new session
+                session_start();
+                        
+                // Store data in session variables
+                $_SESSION["role"] = $response['role'];
+                $_SESSION["loggedin"] = true;
+                $_SESSION["token"] = $response['token'];
+                $_SESSION["username"] = $usernameL;                     
+                        
+                // Redirect user to welcome page
+                header("location: portal.php");
+            }else{
+                $err = $response['message'];
+            }
+ 
         }
     }else if ($_POST["function"] == 'singup'){
         // Check if password is empty.
-        if(empty($_POST["password"]) && $_POST["password"] != $_POST["password2"]){
+        if(empty($_POST["psw"]) || $_POST["psw"] != $_POST["psw2"]){
             $err = "Passwords must be the same";
         } else{
-            $password = secure_input($_POST["password"]); 
+            $password = secure_input($_POST["psw"]); 
         }
 
         if(empty(trim($_POST["username"]))){
@@ -91,7 +85,14 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
         if(empty(trim($_POST["email"]))){
             $err = "Please enter your email.";
         } else{
-            $password = secure_input($_POST["email"]);
+            $email = secure_input($_POST["email"]);
+        }
+
+        // Check if role is empty
+        if(empty(trim($_POST["role"]))){
+            $err = "Please select a role.";
+        } else{
+            $role = secure_input($_POST["role"]);
         }
 
         if(empty($err)){
@@ -99,19 +100,18 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
             $user->username = $username ;
             $user->password = $password ;
             $user->email = $email;
+            $user->role = $role;
 
             $data = json_encode($user);
-            // $header = array();
-            $get_data = callAPI('POST', $db_service.'/user/', $data, false);
-            $response = json_decode($get_data, true);
-
+            $header = array("Content-Type:application/json", "master_key:".$master_key);
+            callAPI('POST', $auth_service.'/users', $data, $header);
 
             if($httpcode == 201){
                 $message = '<span style="color:green">User created!</span>';
 
                 //Erase fields for no resubmision
-                $username = $email = $password2 = $password;
-            }elseif ($httpcode == 401){
+                $username = $email = $password2 = $password = '';
+            }elseif ($httpcode == 400){
                 $message = '<span style="color:red">Username exists</span>';
             }else{
                 $message = '<span style="color:red">Oops! Something went wrong. Please try again later.</span>';
@@ -155,8 +155,8 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
                   <label for="username"><b>Username</b></label>
                   <input type="text" placeholder="Enter Username" name="username" required>
 
-                  <label for="password"><b>Password</b></label>
-                  <input type="password" placeholder="Enter Password" name="password" required>
+                  <label for="psw"><b>Password</b></label>
+                  <input type="password" placeholder="Enter Password" name="psw" required>
                     
                   <button type="submit">Login</button>
                   <!-- <label>
@@ -185,12 +185,18 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
                     <input type="text" placeholder="Enter Username" name="username" required>
                     <label for="email"><b>Email</b></label>
                     <input type="text" placeholder="Enter Email" name="email" required>
+                    <label for="role"><b>Role</b></label>
+                    <select id="role" name="role">
+                        <option value="player">Player</option>
+                        <option value="official">Official</option>
+                        <option value="admin">Administrator</option>
+                    </select required>
 
                     <label for="psw"><b>Password</b></label>
                     <input type="password" placeholder="Enter Password" name="psw" required>
 
-                    <label for="password2"><b>Repeat Password</b></label>
-                    <input type="password" placeholder="Repeat Password" name="password2" required>
+                    <label for="psw2"><b>Repeat Password</b></label>
+                    <input type="password" placeholder="Repeat Password" name="psw2" required>
                     <p>By creating an account you agree to our Terms & Privacy.</p>
                     
                     <button type="submit">Sing up</button>
@@ -200,9 +206,11 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
                 </div>
             </form>
             <div class="help-block"><?php echo $err; ?></div>
+            <div class="help-block"><?php echo $message; ?></div>
 
         </div>
         <div class="help-block"><?php echo $err; ?></div>
+        <div class="help-block"><?php echo $message; ?></div>
     </div>
     <?php include 'footer.php'; ?> 
     <script>

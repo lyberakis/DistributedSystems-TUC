@@ -67,10 +67,16 @@ class Validation(Resource):
                     query2.execute(sql, val)
                     mydb.commit()
                     query2.close()
-                    response = (token, result[0][1])
+                    response = {
+                        "token": token, 
+                        "role":result[0][1]
+                    }
                     response = JSONEncoder().encode(response)
                 else:
-                    response = (result2, result[0][1])
+                    response = {
+                        "token": result2[0], 
+                        "role":result[0][1]
+                    }
                     response = JSONEncoder().encode(response)             
 
                 if response:                    
@@ -78,10 +84,18 @@ class Validation(Resource):
                 else:
                     return '', 400
             else:
-                return 'Password does not match', 400
+                response = {
+                    "message": "Password does not match"
+                }
+                response = JSONEncoder().encode(response)
+                return response, 400
 
         else:
-            return 'Unauthorized action', 400
+            response = {
+                "message": "Unauthorized"
+            }
+            response = JSONEncoder().encode(response)
+            return response, 400
 
     def get(self):
         args = request.args
@@ -122,18 +136,18 @@ class Users(Resource):
             passwd="rootpassword",
             database="auth"
         )
-        if role=='admin' or role=='official':
-            token = request.headers['access_token']
+        # if role=='admin' or role=='official':
+        #     token = request.headers['access_token']
 
-            query2=mydb.cursor(buffered=True, dictionary=True)
-            sql="SELECT role FROM tokens JOIN users WHERE token = %s"
-            val=(token, )
-            query2.execute(sql, val)
-            result=query2.fetchall()
-            query2.close()
+        #     query2=mydb.cursor(buffered=True, dictionary=True)
+        #     sql="SELECT role FROM tokens JOIN users WHERE token = %s"
+        #     val=(token, )
+        #     query2.execute(sql, val)
+        #     result=query2.fetchall()
+        #     query2.close()
 
-            if result[0]['role']!='admin':
-                access=False
+        #     if result[0]['role']!='admin':
+        #         access=False
         
         if access is True and key=='TUC-2020':
             salt = hashlib.sha256(os.urandom(60)).hexdigest().encode('ascii')#code from https://www.vitoshacademy.com/hashing-passwords-in-python/
@@ -178,14 +192,21 @@ class Users(Resource):
             query.close()
 
             if result:
-                result=JSONEncoder().encode(result)
-                return result, 201
+                json_data=[]
+                for element in result:
+                    d = {
+                        "username": element[0],
+                        "email": element[1],
+                        "role": element[2]
+                    }
+                    json_data.append(d)
+                return json.dumps(json_data), 200
             else:
                 return '', 400
         else:
             return 'Unauthorized action', 400
     def put(self):
-        args = request.args
+        args = request.get_json(force=True)
         username = str(args['username'])
         email = str(args['email'])
         role = str(args['role'])

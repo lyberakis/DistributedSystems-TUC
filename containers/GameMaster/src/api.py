@@ -77,11 +77,11 @@ class Tournament(Resource):
 class Games(Resource):
     def get(self):
         args = request.args
-        player = str(args['player'])
+        token = str(args['token'])
         i=0
         games = []
         for x in compl.find():
-            if player['token']==x["players"][0] or player['token']==x["players"][1]:
+            if token==x["players"][0] or token==x["players"][1]:
                 games.append(x)
 
         jsonGames=JSONEncoder().encode(games)
@@ -92,7 +92,6 @@ class Spectator(Resource):
         args = request.args
         query = {'game' : str(args['game'])}
         games = dumps(prog.find(query))
-        # jsonGames=JSONEncoder().encode(games)
 
         return loads(dumps(games)), 200
 

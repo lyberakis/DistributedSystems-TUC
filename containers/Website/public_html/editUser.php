@@ -1,10 +1,15 @@
 <?php
 // Initialize the session
+if (!isset($_SESSION)) {
+    session_start();
+}
+
 // Check if the user is logged in, if not then redirect him to login page
-// if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
-//     header("location: index.php");
-//     exit;
-// }
+if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
+    header("location: index.php");
+    exit;
+}
+
 
 require_once 'config.php';
 require_once 'functions.php';
@@ -27,7 +32,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
         $data = json_encode($student);
 
         // $header = array("Authorization: "." ".$_SESSION["token_type"]." ".$_SESSION["access_token"]);
-        callAPI('PUT', $auth_service.'/user?username='.$username, $data, false);
+        callAPI('PUT', $auth_service.'/users?username='.$username, $data, false);
 
 
         // Attempt to execute the prepared statement
@@ -67,31 +72,28 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
                 <?php
                 
                 // Show all users in the database
-                // $header = array("Authorization: "." ".$_SESSION["token_type"]." ".$_SESSION["access_token"]);
-                $get_data = callAPI('GET', $auth_service.'/user', $data, false);
+                $header = array("access_token: ".$_SESSION["token"]);
+                $get_data = callAPI('GET', $auth_service.'/users', false, $header);
                 $response = json_decode($get_data, true);
+                $response = json_decode($response, true);
 
                 if ($httpcode == 200) {
                     echo $message;
                     foreach ($response as $user){ 
-    echo '<form class="form-inline" action="'.htmlspecialchars($_SERVER["PHP_SELF"]).'">';
-    echo '<input type="text" id="username" placeholder="Enter username" name="username" value="'.$user['username'].'" required>';
-    echo '<input type="email" id="email" placeholder="Enter email" name="email" value="'.$user['email'].'" required>';
-    
-    echo '<select id="role" name="role" value="'.$user['role'].'" required>
-        <option value="player">Player</option>
-        <option value="official">Official</option>
-        <option value="admin">admin</option>';
-    echo '<button type="submit">Submit</button>';
-    echo '</form>';
+    echo '<form name='.$user['username'].'" class="form-inline" action="'.htmlspecialchars($_SERVER["PHP_SELF"]).'" method="post">
+        <input type="text" id="username" placeholder="Enter username" name="username" value="'.$user['username'].'" required>
+        <input type="email" id="email" placeholder="Enter email" name="email" value="'.$user['email'].'" required>
+        
+        <select id="role" name="role"  data-selected="'.$user['role'].'" required>
+            <option value="player">Player</option>
+            <option value="official">Official</option>
+            <option value="admin">admin</option>
+        <button type="submit">Submit</button>
+    </form>';
                     }
-                }elseif ($httpcode == 401) {
-                    echo "<tr>";
-                    echo '<td colspan="4" style="text-align: center;">Unauthorized action!</td>';
-                    echo "</tr>";
                 }else{
                     echo "<tr>";
-                    echo '<td colspan="4" style="text-align: center;">No users found...</td>';
+                    echo '<td colspan="4" style="text-align: center;">Error</td>';
                     echo "</tr>";
                 }
                 ?>

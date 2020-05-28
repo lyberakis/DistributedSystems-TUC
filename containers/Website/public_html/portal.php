@@ -2,21 +2,18 @@
 // Initialize the session
 if (!isset($_SESSION)) {
     session_start();
-    $_SESSION["token"] = 'a'.rand(0, 10005);
 }
-$_SESSION['gm'] = '';
-$_SESSION['pm'] = '';
+
 // Check if the user is logged in, if not then redirect him to login page
-// if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
-//     header("location: index.php");
-//     exit;
-// }
+if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
+    header("location: index.php");
+    exit;
+}
 
 require_once 'config.php';
 require_once 'functions.php';
-//read the loaded games
-
-
+$_SESSION['gm'] = '';
+$_SESSION['pm'] = '';
  ?>
 
 <!DOCTYPE html>
@@ -32,7 +29,6 @@ require_once 'functions.php';
             <div class="games">
                 <h1>Game List</h1>
                 <?php
-                echo $_SESSION["token"];
                 // Show games dynamically
                     $games = getGames();
                     foreach($games as $game) {

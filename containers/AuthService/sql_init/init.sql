@@ -1,4 +1,6 @@
 SET GLOBAL event_scheduler=ON;
+-- SET GLOBAL max_allowed_packet = 1024 * 1024 * 256;
+-- SET GLOBAL interactive_timeout=6000;
 
 CREATE DATABASE IF NOT EXISTS auth;
 USE auth;
