@@ -35,12 +35,15 @@ class Validation(Resource):
                 database="auth"
             )
             query=mydb.cursor()
-            sql="SELECT password FROM users WHERE username = %s"
+            sql="SELECT password, role FROM users WHERE username = %s"
             val=(username, )
             query.execute(sql, val)
-            result=query.fetchone()
-
-            stored_password=result[0]
+            result=query.fetchall()
+            log.info(result)
+            log.info(result[0])
+            log.info(result[0][0])
+            log.info(result[0][1])
+            stored_password=result[0][0]
             salt = stored_password[:64]#code from https://www.vitoshacademy.com/hashing-passwords-in-python/
             stored_password = stored_password[64:]
             pwdhash = hashlib.pbkdf2_hmac('sha512', password.encode('utf-8'), salt.encode('ascii'), 100000)
@@ -49,24 +52,34 @@ class Validation(Resource):
 
             query.close()
             if match:
-                creation=date.today()
+                query3=mydb.cursor()
+                sql="SELECT token FROM tokens WHERE username=%s"
+                val=(username, )
+                query3.execute(sql, val)
+                result2=query3.fetchone()
+                query3.close()
+                if not result2:
+                    creation=date.today()
 
-                query2=mydb.cursor()
-                sql="INSERT INTO tokens VALUES (%s, %s, %s);"
-                val=(username, token, creation)
-                query2.execute(sql, val)
-                mydb.commit()
+                    query2=mydb.cursor()
+                    sql="INSERT INTO tokens VALUES (%s, %s, %s);"
+                    val=(username, token, creation)
+                    query2.execute(sql, val)
+                    mydb.commit()
+                    query2.close()
+                    response = (token, result[0][1])
+                    response = JSONEncoder().encode(response)
+                else:
+                    response = (result2, result[0][1])
+                    response = JSONEncoder().encode(response)             
 
-                token = JSONEncoder().encode(token)
+                if response:                    
+                    return response, 201
+                else:
+                    return '', 400
             else:
                 return 'Password does not match', 400
 
-            if query2.rowcount:
-                query2.close()
-                return token, 201
-            else:
-                query2.close()
-                return '', 400
         else:
             return 'Unauthorized action', 400
 
@@ -118,7 +131,7 @@ class Users(Resource):
             query2.execute(sql, val)
             result=query2.fetchall()
             query2.close()
-            
+
             if result[0]['role']!='admin':
                 access=False
         
