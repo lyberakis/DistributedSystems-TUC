@@ -3,8 +3,8 @@ services:
   website:
     build: './containers/Website'
     image: website
-    volumes:
-      - ./containers/Website/public_html:/var/www/html/
+    # volumes:
+    #   - ./containers/Website/public_html:/var/www/html/
     ports:
       - "8089:80"
     networks:
